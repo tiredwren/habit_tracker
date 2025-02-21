@@ -5,6 +5,7 @@ import { db } from "./firebaseConfig";
 import { doc, setDoc, collection, onSnapshot } from "firebase/firestore";
 import styles from "../assets/styles/styles";
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { router } from "expo-router";
 
 const HabitTracker = () => {
   const [habits, setHabits] = useState([]);
@@ -17,9 +18,10 @@ const HabitTracker = () => {
     setNewHabit({ ...newHabit, [name]: value });
   };
 
-  const openHabitDescription = async () => {
-    //navigation
-  }
+  const openHabitDescription = (habitId) => {
+    console.log("Habit ID:", habitId);
+    router.push(`/log?habitRef=${habitId}`);
+  };
 
   const handleImageUpload = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -72,7 +74,7 @@ const HabitTracker = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#b7b7a4", width: width }}>
-      <Text style={[styles.title, {marginTop: "7%"}]}>Y O U R   H A B I T S</Text>
+      <Text style={[styles.title, {marginTop: "7%"}]}>y o u r   h a b i t s</Text>
 
       <FlatList
         data={habits}
@@ -87,7 +89,7 @@ const HabitTracker = () => {
               <Text style={styles.cardContainerText}>{item.name}</Text>
             </View>
             <View style={styles.textContainer}>
-            <TouchableOpacity style={styles.arrowButton} onPress={openHabitDescription}>
+            <TouchableOpacity style={styles.arrowButton} onPress={() => openHabitDescription(item.id)}>
               <Icon name="arrow-right" size={20} color="#000" />
             </TouchableOpacity>
           </View>

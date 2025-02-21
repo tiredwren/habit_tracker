@@ -49,13 +49,13 @@ const TabBarButton = (props) => {
     })
   return (
     <Pressable {...props} style={styles.container}>
-        <Animated.View style={[animatedIconStyle]}>
+        {/* <Animated.View style={[animatedIconStyle]}>
             {
-                icons[routeName]({
-                    color
-                })
+                // icons[routeName]({
+                //     color
+                // })
             }
-        </Animated.View>
+        </Animated.View> */}
         
         <Animated.Text style={[{ 
             color,

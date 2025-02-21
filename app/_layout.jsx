@@ -16,14 +16,6 @@ const _layout = () => {
                     title: "Habits"
                 }
             }/>
-
-            <Tabs.Screen
-                name="two"
-                options={
-                    {
-                        title: "Two"
-                    }
-            }/>
         </Tabs>
     )
 }
