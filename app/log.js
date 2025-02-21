@@ -42,9 +42,9 @@ const LogProgress = () => {
                     date: currentDate, 
                     reflection: newProgress.reflection, 
                     image: newProgress.image, 
-                }, { merge: true }); // Merge prevents overwriting old fields
+                }, { merge: true }); // merge prevents overwriting old fields
 
-                // Clear inputs
+                // clear inputs
                 setProgressLog({ reflection: "", image: null }); 
             } catch (error) { 
                 alert("error saving progress: " + error.message); 
@@ -56,7 +56,7 @@ const LogProgress = () => {
  
     useEffect(() => { 
         const fetchDayLog = async () => { 
-            setProgressLog({ reflection: "", image: null }); // Reset state before fetching
+            setProgressLog({ reflection: "", image: null }); // reset state before fetching
             
             const currentDate = new Date().toISOString().split("T")[0]; 
             const progressRef = doc(db, "users", userId, "habits", habitRef, "progress", currentDate);
