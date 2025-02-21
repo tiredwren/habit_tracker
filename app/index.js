@@ -21,6 +21,7 @@ const HabitTracker = () => {
   const openHabitDescription = (habitId) => {
     console.log("Habit ID:", habitId);
     router.push(`/log?habitRef=${habitId}`);
+
   };
 
   const handleImageUpload = async () => {

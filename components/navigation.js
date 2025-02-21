@@ -1,106 +1,84 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import React from 'react'
-import { AntDesign, Feather } from '@expo/vector-icons';
+import { View, StyleSheet } from 'react-native';
+import React from 'react';
 import TabBarButton from './nav_button';
+import { Feather, AntDesign, MaterialIcons } from '@expo/vector-icons';
 
 const TabBar = ({ state, descriptors, navigation }) => {
+    const primaryColor = '#ffe8d6';
+    const lightGreen = '#b7b7a4';
 
+    // Assign icons based on route names
+    const icons = {
+        index: Feather,
+        log: AntDesign,
+    };
 
-    const primaryColor = '#0891b2';
-    const greyColor = '#737373';
-  return (
-    <View style={styles.tabbar}>
-      {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-        const label =
-          options.tabBarLabel !== undefined
-            ? options.tabBarLabel
-            : options.title !== undefined
-            ? options.title
-            : route.name;
+    const iconNames = {
+        index: "home", // Icon for 'index' page
+        log: "book",   // Icon for 'log' page
+    };
 
-        if(['_sitemap', '+not-found'].includes(route.name)) return null;
+    return (
+        <View style={styles.tabbar}>
+            {state.routes.map((route, index) => {
+                const { options } = descriptors[route.key];
+                const label = options.tabBarLabel ?? options.title ?? route.name;
 
-        const isFocused = state.index === index;
+                if (['_sitemap', '+not-found'].includes(route.name)) return null;
 
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
+                const isFocused = state.index === index;
+                const IconComponent = icons[route.name] || Feather; // default to feather if not found
+                const iconName = iconNames[route.name] || "circle"; // default to a generic icon
 
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name, route.params);
-          }
-        };
+                const onPress = () => {
+                    const event = navigation.emit({
+                        type: 'tabPress',
+                        target: route.key,
+                        canPreventDefault: true,
+                    });
 
-        const onLongPress = () => {
-          navigation.emit({
-            type: 'tabLongPress',
-            target: route.key,
-          });
-        };
+                    if (!isFocused && !event.defaultPrevented) {
+                        navigation.navigate(route.name, route.params);
+                    }
+                };
 
-        return (
-          <TabBarButton 
-            key={route.name}
-            style={styles.tabbarItem}
-            onPress={onPress}
-            onLongPress={onLongPress}
-            isFocused={isFocused}
-            routeName={route.name}
-            color={isFocused? primaryColor: greyColor}
-            label={label}
-          />
-        )
+                if (route.name === 'log') { // so the log component doesn't show on tab bar
+                  return null;
+              }
 
-        // return (
-        //   <TouchableOpacity
-        //     key={route.name}
-        //     style={styles.tabbarItem}
-        //     accessibilityRole="button"
-        //     accessibilityState={isFocused ? { selected: true } : {}}
-        //     accessibilityLabel={options.tabBarAccessibilityLabel}
-        //     testID={options.tabBarTestID}
-        //     onPress={onPress}
-        //     onLongPress={onLongPress}
-        //   >
-        //     {
-        //         icons[route.name]({
-        //             color: isFocused? primaryColor: greyColor
-        //         })
-        //     }
-        //     <Text style={{ 
-        //         color: isFocused ? primaryColor : greyColor,
-        //         fontSize: 11
-        //     }}>
-        //       {label}
-        //     </Text>
-        //   </TouchableOpacity>
-        // );
-      })}
-    </View>
-  )
-}
+                return (
+                    <TabBarButton
+                        key={route.name}
+                        onPress={onPress}
+                        isFocused={isFocused}
+                        routeName={route.name}
+                        color={isFocused ? primaryColor : lightGreen}
+                        label={label}
+                        icon={<IconComponent name={iconName} size={24} color={isFocused ? primaryColor : lightGreen} />}
+                    />
+                );
+            })}
+        </View>
+    );
+};
 
 const styles = StyleSheet.create({
     tabbar: {
-        position: 'absolute', 
-        bottom: 25,
+        position: 'absolute',
+        bottom: 20,
+        left: 10,
+        right: 10,
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'space-around',
         alignItems: 'center',
-        backgroundColor: 'white',
-        marginHorizontal: 20,
-        paddingVertical: 15,
-        borderRadius: 25,
-        borderCurve: 'continuous',
-        shadowColor: 'black',
-        shadowOffset: {width: 0, height: 10},
+        backgroundColor: '#6b705c',
+        paddingVertical: 20,
+        borderRadius: 10,
+        shadowOffset: { width: 0, height: 6 },
         shadowRadius: 10,
-        shadowOpacity: 0.1
-    }
-})
+        shadowOpacity: 0.3,
+        elevation: 5,
+    },
+});
 
-export default TabBar
+export default TabBar;

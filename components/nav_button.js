@@ -1,79 +1,61 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native'
-import React, { useEffect } from 'react'
-import { icons } from '../assets/icons.js';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
 import Animated, { interpolate, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 const TabBarButton = (props) => {
-    const {isFocused, label, routeName, color} = props;
-
+    const { isFocused, label, icon } = props;
     const scale = useSharedValue(0);
 
-    useEffect(()=>{
-        scale.value = withSpring(
-            typeof isFocused === 'boolean'? (isFocused? 1: 0): isFocused,
-            {duration: 350}
-        );
-    },[scale, isFocused]);
+    useEffect(() => {
+        scale.value = withSpring(isFocused ? 1 : 0, { damping: 10, stiffness: 100 });
+    }, [isFocused]);
 
-    const animatedIconStyle = useAnimatedStyle(()=>{
+    const animatedButtonStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: interpolate(scale.value, [0, 1], [1, 1.1]) }],
+        backgroundColor: 'transparent',
+        paddingHorizontal: isFocused ? 18 : 14,
+        paddingVertical: isFocused ? 10 : 8,
+        borderRadius: 50,
+        flexDirection: 'row', // align icon and text when focused
+        alignItems: 'center',
+        gap: isFocused ? 6 : 0, // add spacing between icon and text when focused
+    }));
 
-        const scaleValue = interpolate(
-            scale.value,
-            [0, 1],
-            [1, 1.4]
-        );
-        const top = interpolate(
-            scale.value,
-            [0, 1],
-            [0, 8]
-        );
+    const animatedTextStyle = useAnimatedStyle(() => ({
+        color: isFocused ? '#ffe8d6' : '#b7b7a4',
+        fontSize: isFocused ? 18 : 16,
+        fontWeight: isFocused ? '600' : '500',
+        letterSpacing: isFocused ? 0.5 : 0.3,
+        opacity: interpolate(scale.value, [0, 1], [0, 1]), // animation when text when focused
+    }));
 
-        return {
-            // styles
-            transform: [{scale: scaleValue}],
-            top
-        }
-    })
-    const animatedTextStyle = useAnimatedStyle(()=>{
-
-        const opacity = interpolate(
-            scale.value,
-            [0, 1],
-            [1, 0]
-        );
-
-        return {
-            // styles
-            opacity
-        }
-    })
-  return (
-    <Pressable {...props} style={styles.container}>
-        {/* <Animated.View style={[animatedIconStyle]}>
-            {
-                // icons[routeName]({
-                //     color
-                // })
-            }
-        </Animated.View> */}
-        
-        <Animated.Text style={[{ 
-            color,
-            fontSize: 11
-        }, animatedTextStyle]}>
-            {label}
-        </Animated.Text>
-    </Pressable>
-  )
-}
+    return (
+        <Pressable {...props} style={styles.container}>
+            <Animated.View style={[styles.button, animatedButtonStyle]}>
+                {icon}
+                {isFocused && (
+                    <Animated.Text style={animatedTextStyle}>
+                        {label}
+                    </Animated.Text>
+                )}
+            </Animated.View>
+        </Pressable>
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 4
-    }
-})
+    },
+    button: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+});
 
-export default TabBarButton
+export default TabBarButton;

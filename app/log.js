@@ -102,14 +102,14 @@ const LogProgress = () => {
                                 multiline={true} 
                                 value={newProgress.reflection} 
                                 onChangeText={(text) => handleInputChange("reflection", text)} 
-                                style={[styles.input, { color: "#000", minHeight: 200, textAlignVertical: "top" }]} 
+                                style={[styles.input, { color: "#000", minHeight: 170, textAlignVertical: "top" }]} 
                             /> 
                             <View style={{ flex: 1, justifyContent: "flex-end", marginTop: 150 }}> 
                                 <View style={styles.buttonContainer2}> 
                                     <TouchableOpacity style={styles.saveButton} onPress={saveProgressLog}> 
                                         <Text style={styles.buttonText}>save</Text> 
                                     </TouchableOpacity> 
-                                    <TouchableOpacity style={styles.cancelButton} onPress={() => router.push(`/index`)}> 
+                                    <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}> 
                                         <Text style={styles.buttonText}>cancel</Text> 
                                     </TouchableOpacity> 
                                 </View> 
