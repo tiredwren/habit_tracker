@@ -3,6 +3,7 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import TabBar from '../components/navigation';
 
+
 const _layout = () => {
     return (
         <Tabs
@@ -19,5 +20,6 @@ const _layout = () => {
         </Tabs>
     );
 }
+
 
 export default _layout;

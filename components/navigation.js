@@ -42,7 +42,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
                     }
                 };
 
-                if (route.name === 'log') { // so the log component doesn't show on tab bar
+                if (route.name === 'log' | route.name == 'progress') { // so the log component doesn't show on tab bar
                   return null;
               }
 

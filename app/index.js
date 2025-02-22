@@ -7,22 +7,27 @@ import styles from "../assets/styles/styles";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { router } from "expo-router";
 
+
 const HabitTracker = () => {
   const [habits, setHabits] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newHabit, setNewHabit] = useState({ name: "", frequency: "", image: null });
-  const userId = "user_id"; // ensure to replace with actual user id
+  const userId = "user_id"; // replace with actual user id
   const { width } = Dimensions.get('window');
+
 
   const handleInputChange = (name, value) => {
     setNewHabit({ ...newHabit, [name]: value });
   };
 
+
   const openHabitDescription = (habitId) => {
     console.log("Habit ID:", habitId);
     router.push(`/log?habitRef=${habitId}`);
 
+
   };
+
 
   const handleImageUpload = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -32,10 +37,12 @@ const HabitTracker = () => {
       quality: 1,
     });
 
+
     if (!result.canceled) {
       setNewHabit({ ...newHabit, image: result.assets[0].uri }); // access the correct uri
     }
   };
+
 
   const saveHabit = async () => {
     if (newHabit.name && newHabit.frequency) {
@@ -43,9 +50,10 @@ const HabitTracker = () => {
         const habitRef = doc(collection(db, "users", userId, "habits"));
         await setDoc(habitRef, {
           ...newHabit,
-          // ensure image is set to a valid value, use empty string if null
+          // make sure image is set to a valid value, use empty string if null
           image: newHabit.image || "",
         });
+
 
         // reset habit and close dialog immediately
         setNewHabit({ name: "", frequency: "", image: null });
@@ -58,24 +66,30 @@ const HabitTracker = () => {
     }
   };
 
+
   useEffect(() => {
     const fetchHabits = async () => {
       const habitsCollection = collection(db, "users", userId, "habits");
+
 
       const unsubscribe = onSnapshot(habitsCollection, (snapshot) => {
         const fetchedHabits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setHabits(fetchedHabits);
       });
 
+
       return () => unsubscribe();
     };
+
 
     fetchHabits();
   }, [userId]);
 
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#b7b7a4", width: width }}>
       <Text style={[styles.title, {marginTop: "7%"}]}>y o u r   h a b i t s</Text>
+
 
       <FlatList
         data={habits}
@@ -98,12 +112,14 @@ const HabitTracker = () => {
         )}
       />
 
+
       {/* add habit button */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={[styles.button, {marginBottom: "30%"}]} onPress={() => setIsDialogOpen(true)}>
           <Text style={styles.buttonText}>add a habit/goal</Text>
         </TouchableOpacity>
       </View>
+
 
       {/* habit dialog */}
       {isDialogOpen && (
@@ -116,6 +132,7 @@ const HabitTracker = () => {
               <Text style={styles.title2}>a d d   a   g o a l</Text>
               <View style={styles.addHabitContainer}>
 
+
                 {/* display image above the button */}
                 {newHabit.image && (
                   <Image
@@ -124,11 +141,13 @@ const HabitTracker = () => {
                   />
                 )}
 
+
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity style={styles.button} onPress={handleImageUpload}>
                     <Text style={styles.buttonText}>upload image</Text>
                   </TouchableOpacity>
                 </View>
+
 
                 <Text style={[styles.labelText, { marginBottom: 10, marginTop: 20 }]}>name</Text>
                 <TextInput
@@ -137,12 +156,14 @@ const HabitTracker = () => {
                   style={[styles.input, { color: "#000", marginBottom: 20 }]}
                 />
 
+
                 <Text style={[styles.labelText, { marginBottom: 10 }]}>frequency</Text>
                 <TextInput
                   value={newHabit.frequency}
                   onChangeText={(text) => handleInputChange("frequency", text)}
-                  style={[styles.input, { color: "#000" }]}
+style={[styles.input, { color: "#000" }]}
                 />
+
 
                 <View style={{ flex: 1, justifyContent: "flex-end", marginTop: 20 }}>
                   <View style={styles.buttonContainer2}>
@@ -162,6 +183,8 @@ const HabitTracker = () => {
     </SafeAreaView>
   );
 };
+
+
 
 
 export default HabitTracker;

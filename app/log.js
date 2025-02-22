@@ -1,6 +1,6 @@
-import { router, useRouter } from "expo-router"; 
+import { Link, router, useRouter } from "expo-router"; 
 import { useEffect, useState } from "react"; 
-import { SafeAreaView, Dimensions, View, Text, TextInput, Image, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from "react-native"; 
+import { SafeAreaView, Linking, Dimensions, View, Text, TextInput, Image, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from "react-native"; 
 import * as ImagePicker from "expo-image-picker"; 
 import { db } from "./firebaseConfig"; 
 import { doc, setDoc, getDoc } from "firebase/firestore"; 
@@ -35,7 +35,7 @@ const LogProgress = () => {
     const saveProgressLog = async () => { 
         if (newProgress.reflection && newProgress.image) { 
             try { 
-                const currentDate = new Date().toISOString().split("T")[0]; // e.g., "2025-02-20"
+                const currentDate = new Date().toISOString().split("T")[0]; // eg "2025-02-20"
                 const progressRef = doc(db, "users", userId, "habits", habitRef, "progress", currentDate);
 
                 await setDoc(progressRef, { 
@@ -82,7 +82,13 @@ const LogProgress = () => {
                 behavior={Platform.OS === "ios" ? "padding" : "height"} 
                 style={[styles.dialogBox, { position: "absolute", top: "0%", height: "100%", width: "100%", padding: 20 }]} 
             > 
-                <Text style={[styles.title2, {color: "#b7b7a4"}]}>l o g   p r o g r e s s</Text> 
+                <Text style={[styles.title2, {color: "#b7b7a4", marginBottom: 0}]}>l o g   p r o g r e s s</Text> 
+                <Link 
+                style={[styles.buttonText, {color: "#000", alignSelf:"center"}]} 
+                href={{
+                    pathname:"/progress",
+                    params: {habitId: habitRef}
+                    }}>see progress</Link>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}> 
                     <ScrollView contentContainerStyle={{ flexGrow: 1 }}> 
                         <View style={styles.addHabitContainer}> 

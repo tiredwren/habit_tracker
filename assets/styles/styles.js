@@ -95,9 +95,19 @@ const styles = StyleSheet.create({
       backgroundColor: '#ddbea9',
       borderColor: "#ffe8d6",
       borderWidth: 1,
-      padding: 20,
+      padding: 10,
       borderRadius: 20,
       alignSelf: "center",
+    },
+
+    imageContainer: {
+      flex: 1,
+      margin: 2, 
+      aspectRatio: 1,
+    },
+    image: {
+      width: '100%',
+      height: '100%',
     },
 
     buttonContainer: {
