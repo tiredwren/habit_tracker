@@ -160,11 +160,9 @@ const HabitTracker = () => {
                 <Text style={[styles.labelText, { marginBottom: 10 }]}>frequency</Text>
                 <TextInput
                   value={newHabit.frequency}
-                  onChangeText={(text) => handleInputChange("frequency", text)}
-style={[styles.input, { color: "#000" }]}
+                  onChangeText={(text) => handleInputChange("frequency", text)} 
+                  style={[styles.input, { color: "#000" }]}
                 />
-
-
                 <View style={{ flex: 1, justifyContent: "flex-end", marginTop: 20 }}>
                   <View style={styles.buttonContainer2}>
                     <TouchableOpacity style={styles.saveButton} onPress={saveHabit}>

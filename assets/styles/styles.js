@@ -198,6 +198,26 @@ const styles = StyleSheet.create({
       alignItems: "center"
     },
 
+    streakContainer: {
+      padding: 20,
+      alignItems: 'center',
+  },
+  
+  streakText: {
+      fontSize: 18,
+      fontWeight: 'bold',
+  },
+  
+  streakBar: {
+      height: 10,
+      width: '100%',
+      backgroundColor: '#ccc',
+      borderRadius: 5,
+      overflow: 'hidden',
+      marginVertical: 10,
+  },
+  
+
   });
 
   export default styles;

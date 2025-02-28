@@ -74,6 +74,8 @@ const LogProgress = () => {
     
         if (habitRef) fetchDayLog(); 
     }, [habitRef]); 
+
+    
      
      
     return ( 
