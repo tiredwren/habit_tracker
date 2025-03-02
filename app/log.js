@@ -78,9 +78,9 @@ const LogProgress = () => {
         const querySnapshot = await getDocs(q);
         const logs = [];
         querySnapshot.forEach((doc) => {
-            logs.push({ id: doc.id, ...doc.data() }); // Collect logs in an array
+            logs.push({ id: doc.id, ...doc.data() }); // get already saved logs in array
         });
-        setProgressLogs(logs); // Set the logs in state
+        setProgressLogs(logs); // sets logs in state
     };
 
     useEffect(() => { 
@@ -128,9 +128,10 @@ const LogProgress = () => {
                             /> 
 
                             {/* display all of day's progress logs */}
+                            { progressLogs.length > 0 && (
                             <View style={{ marginTop: 20 }}>
                                 <Text style={[styles.title, {color: "#000", marginBottom: 0, marginTop: 20 }]}>other logs from today</Text>
-                                <Text style={[styles.labelText, {color: "#000", marginBottom: 0, marginTop: 20, textAlign: "center" }]}>click on one to edit it, or fill out a new log above</Text>
+                                <Text style={[styles.labelText, {color: "#000", marginLeft: 0, marginBottom: 0, marginTop: 20, textAlign: "center" }]}>click on one to edit it, or fill out a new log above</Text>
                                 {progressLogs.map(log => (
                                     <TouchableOpacity 
                                         key={log.id} 
@@ -140,7 +141,8 @@ const LogProgress = () => {
                                         <Text style={styles.logText}>{log.reflection}</Text> {/* card shows distinct reflections */}
                                     </TouchableOpacity>
                                 ))}
-                            </View> 
+                            </View>
+                            )}
 
                             {/* Flexible space to push buttons to the bottom */}
                             <View style={{ flex: 1, justifyContent: "flex-end", marginBottom: "30%", marginTop: "40%" }}> 
