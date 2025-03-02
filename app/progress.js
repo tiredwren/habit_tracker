@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { SafeAreaView, View, Text, FlatList, Image, TouchableOpacity, KeyboardAvoidingView, TouchableWithoutFeedback, ScrollView, Keyboard, Platform } from "react-native";
@@ -11,10 +11,14 @@ const ProgressPage = () => {
     const [streak, setStreak] = useState(0);
     const [numColumns, setNumColumns] = useState(3);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [selectedImageUri, setSelectedImageUri] = useState(null); // for specific log
+    const [selectedDate, setSelectedDate] = useState(""); // for specific log
+    const [selectedReflection, setSelectedReflection] = useState(""); // for specific log
 
     const params = useLocalSearchParams();
     const habitRef = params.habitId;
     const userId = "user_id"; // Replace with actual user ID
+    const router = useRouter();
 
     useEffect(() => {
         const fetchProgress = async () => {
@@ -53,7 +57,8 @@ const ProgressPage = () => {
                     querySnapshot.forEach((doc) => {
                         const fetchedData = doc.data();
                         if (fetchedData.image) {
-                            images.push(fetchedData.image);
+                            // Store the ID along with the image URL and reflection
+                            images.push({ id: doc.id, uri: fetchedData.image, reflection: fetchedData.reflection || "" }); // Include reflection
                         }
                         if (fetchedData.reflection) {
                             reflections.push(fetchedData.reflection);
@@ -70,10 +75,18 @@ const ProgressPage = () => {
             }
         };
 
-        console.log(habitProgress.images);
-
         fetchProgress();
     }, [habitRef]);
+
+    const test = (image, date, reflection) => {
+        console.log(`Reflection: ${reflection}`); // Log reflection to check
+        setIsDialogOpen(true);
+        setSelectedImageUri(image);
+        setSelectedDate(date);
+        console.log(selectedReflection);
+        setSelectedReflection(reflection);
+        
+    };
 
     // Format the lastDate to mm-dd-yyyy
     const formatDate = (date) => {
@@ -81,52 +94,63 @@ const ProgressPage = () => {
         return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}-${d.getFullYear()}`;
     };
 
-    console.log("Number of images:", habitProgress.images.length);
-    console.log("Rendering FlatList: ", habitProgress.images.length > 0);
-
     return (
         <SafeAreaView>
             <View style={styles.streakContainer}>
-                <Text style={styles.streakText}>streak: {streak} days</Text>
+                <Text style={[styles.labelText, { marginBottom: 0, marginLeft: 2, fontWeight: "bold" }]}>
+                    {streak} / 30 day streak ✧.*
+                </Text>
                 <View style={styles.streakBar}>
-                    <View style={{ 
+                    <View style={{
                         width: `${(streak / 30) * 100}%`, // Assuming 30 days max for a full bar
-                        backgroundColor: 'green', 
-                        height: '100%' 
+                        backgroundColor: '#d4a373',
+                        height: '100%'
                     }} />
                 </View>
             </View>
-            {/* conditionally render the flatlist if there are images */}
+            {/* Conditionally render the FlatList if there are images */}
             {habitProgress.images.length > 0 ? (
                 <FlatList
-                    style={{ marginTop: 30, marginHorizontal: 10, borderColor: 'red', borderWidth: 1 }}
+                    style={{ marginTop: 30, marginHorizontal: 10 }}
                     data={habitProgress.images}
-                    keyExtractor={(item, index) => item.uri || index.toString()}
+                    keyExtractor={(item) => item.uri} // Use image URI as key
                     numColumns={numColumns}
-                    
-                    key={`image-list-${numColumns}`} // for forcing re-render
+                    key={`image-list-${numColumns}`} // For forcing re-render
                     renderItem={({ item }) => (
                         <View style={styles.imageContainer}>
-                            <TouchableOpacity onPress={() => setIsDialogOpen(true)}>
-                                <Image source={{ uri: item }} style={styles.image} />
+                            <TouchableOpacity onPress={() => test(item.uri, item.id, item.reflection)}> {/* Pass image URI and reflection to the test function */}
+                                <Image source={{ uri: item.uri }} style={styles.image} />
                             </TouchableOpacity>
                         </View>
                     )}
                 />
             ) : (
-                <Text>No images available</Text> // fallback message when there are no images
+                <View>
+                    <Text style={[styles.title, { color: "#000", margin: 50 }]}>you haven't logged progress for this habit yet!</Text> {/* Fallback message when there are no images */}
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity style={[styles.button, { marginBottom: "30%", marginHorizontal: 30 }]} onPress={() => router.push(`/log?habitRef=${habitRef}`)}>
+                            <Text style={styles.buttonText}>log progress</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
             )}
-    
+
             {isDialogOpen && (
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
-                    style={[styles.dialogBox, { position: "absolute", top: "0%", height: "120%", width: "100%", backgroundColor: "#b7b7a4", padding: 20 }]}
+                    style={[styles.dialogBox, { position: "absolute", top: "-1%", height: "200%", width: "100%", backgroundColor: "#b7b7a4", borderRadius: 0 }]}
                 >
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-                            <Text style={styles.title2}>a d d   a   g o a l</Text>
+                            <Text style={styles.title2}>l o g   d e t a i l s</Text>
                             <View style={styles.addHabitContainer}>
-                                <TouchableOpacity style={styles.cancelButton} onPress={() => setIsDialogOpen(false)}>
+                                <Text style={[styles.title, { color: "#000" }]}>{selectedDate}</Text>
+                                <Image 
+                                    source={{ uri: selectedImageUri }} 
+                                    style={{ marginBottom: 10, width: "100%", height: 150, borderRadius: 10 }} 
+                                />
+                                <Text style={[styles.labelText, {marginLeft: 2}]}>{selectedReflection}</Text>
+                                <TouchableOpacity style={[styles.cancelButton, { top: "20%" }]} onPress={() => setIsDialogOpen(false)}>
                                     <Text style={styles.buttonText}>exit</Text>
                                 </TouchableOpacity>
                             </View>
@@ -135,7 +159,7 @@ const ProgressPage = () => {
                 </KeyboardAvoidingView>
             )}
         </SafeAreaView>
-    );    
+    );
 };
 
 export default ProgressPage;

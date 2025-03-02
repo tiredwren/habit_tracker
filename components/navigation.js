@@ -1,11 +1,14 @@
-import { View, StyleSheet } from 'react-native';
-import React from 'react';
+import { View, StyleSheet, Keyboard } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import TabBarButton from './nav_button';
 import { Feather, AntDesign, MaterialIcons } from '@expo/vector-icons';
 
 const TabBar = ({ state, descriptors, navigation }) => {
     const primaryColor = '#ffe8d6';
     const lightGreen = '#b7b7a4';
+    
+    // State to track keyboard visibility
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
 
     // Assign icons based on route names
     const icons = {
@@ -17,6 +20,26 @@ const TabBar = ({ state, descriptors, navigation }) => {
         index: "home", // Icon for 'index' page
         log: "book",   // Icon for 'log' page
     };
+
+    useEffect(() => {
+        // Event listeners for keyboard show/hide
+        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+            setKeyboardVisible(true);
+        });
+        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+            setKeyboardVisible(false);
+        });
+
+        // Cleanup listeners on unmount
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
+    }, []);
+
+    if (keyboardVisible) {
+        return null; // Return null to hide the tab bar when keyboard is up
+    }
 
     return (
         <View style={styles.tabbar}>
@@ -42,9 +65,9 @@ const TabBar = ({ state, descriptors, navigation }) => {
                     }
                 };
 
-                if (route.name === 'log' | route.name == 'progress') { // so the log component doesn't show on tab bar
+                if (route.name === 'log' || route.name === 'progress') { // so the log component doesn't show on tab bar
                   return null;
-              }
+                }
 
                 return (
                     <TabBarButton

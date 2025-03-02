@@ -1,8 +1,8 @@
 @font-face {
-    font-family: 'CustomFont';
-  src: url('../assets/fonts/Jost.ttf') format('woff2'),
-       url('../assets/fonts/Jost.ttf') format('woff'),
-       url('../assets/fonts/Jost.ttf') format('truetype');
+    font-family: "Jost";
+  src: url('../fonts/Jost/Jost-VariableFont_wght.ttf') format('woff2'),
+       url('../fonts/Jost/Jost-VariableFont_wght.ttf') format('woff'),
+       url('../fonts/Jost/Jost-VariableFont_wght.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
