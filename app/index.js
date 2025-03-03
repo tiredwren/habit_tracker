@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Picker } from '@react-native-picker/picker';
 import {
   SafeAreaView,
   Dimensions,
@@ -25,11 +26,12 @@ const HabitTracker = () => {
   const [habits, setHabits] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [newHabit, setNewHabit] = useState({ name: "", frequency: "", image: null });
+  const [newHabit, setNewHabit] = useState({ name: "", frequency: "", input: "", image: null });
   const [editingHabit, setEditingHabit] = useState(null);
   const [streak, setStreak] = useState(0);
   const userId = "user_id"; // replace with actual user id
   const { width } = Dimensions.get("window");
+
 
   const handleInputChange = (name, value) => {
     setNewHabit({ ...newHabit, [name]: value });
@@ -40,7 +42,6 @@ const HabitTracker = () => {
   };
 
   const openHabitDescription = (habitId) => {
-    console.log("Habit ID:", habitId);
     router.push(`/log?habitRef=${habitId}`);
   };
 
@@ -112,42 +113,43 @@ const HabitTracker = () => {
   const calculateStreak = async () => {
     const habitsCollection = collection(db, "users", userId, "habits");
     const snapshot = await getDocs(habitsCollection);
+    
     const habitPromises = snapshot.docs.map(async (doc) => {
       const habitId = doc.id;
       const progressRef = collection(db, "users", userId, "habits", habitId, "progress");
       const q = query(progressRef, orderBy("date", "desc"));
       const progressSnapshot = await getDocs(q);
-      const progressDates = progressSnapshot.docs.map(doc => new Date(doc.data().date));
+
+      const progressDates = progressSnapshot.docs.map(doc => {
+        const dateData = doc.data().date;
+        return dateData.toDate ? dateData.toDate() : new Date(dateData);
+      });
 
       return { habitId, progressDates };
     });
 
     const habitsProgress = await Promise.all(habitPromises);
+
     const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-
+    let checkDate = new Date(today);
     let currentStreak = 0;
-    let allHabitsHaveProgress = true;
 
-    while (allHabitsHaveProgress) {
-      allHabitsHaveProgress = true;
-
-      for (const { progressDates } of habitsProgress) {
-        if (!progressDates.some(date => date.toDateString() === yesterday.toDateString())) {
-          allHabitsHaveProgress = false;
-          break;
-        }
-      }
+    while (true) {
+      let allHabitsHaveProgress = habitsProgress.every(({ progressDates }) =>
+        progressDates.some(date => date.toDateString() === checkDate.toDateString())
+      );
 
       if (allHabitsHaveProgress) {
         currentStreak++;
-        yesterday.setDate(yesterday.getDate() - 1);
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break;
       }
     }
 
     setStreak(currentStreak);
-  };
+};
+
 
   useEffect(() => {
     const fetchHabits = async () => {
@@ -162,8 +164,8 @@ const HabitTracker = () => {
     };
 
     fetchHabits();
-    calculateStreak(); // Call the streak calculation function
-  }, [userId]);
+    calculateStreak(); // calculate streak
+  }, [habits]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#b7b7a4", width: width }}>
@@ -179,7 +181,7 @@ const HabitTracker = () => {
             }} />
         </View>
       </View>
-      <Text style={[styles.title]}>Y O U R   H A B I T S</Text>
+      <Text style={[styles.title]}>y o u r   h a b i t s</Text>
       <FlatList
         data={habits}
         keyExtractor={(item) => item.id}
@@ -225,7 +227,7 @@ const HabitTracker = () => {
             <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
               <Text style={styles.title2}>a d d   a   g o a l</Text>
               <View style={styles.addHabitContainer}>
-
+                
                 {/* display image above the button */}
                 {newHabit.image && (
                   <Image
@@ -234,13 +236,11 @@ const HabitTracker = () => {
                   />
                 )}
 
-
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity style={styles.button} onPress={handleImageUpload}>
                     <Text style={styles.buttonText}>upload image</Text>
                   </TouchableOpacity>
                 </View>
-
 
                 <Text style={[styles.labelText, { marginBottom: 10, marginTop: 20 }]}>name</Text>
                 <TextInput
@@ -249,13 +249,48 @@ const HabitTracker = () => {
                   style={[styles.input, { color: "#000", marginBottom: 20 }]}
                 />
 
+                <Text style={[styles.labelText, { marginBottom: 10 }]}>input type</Text>
+
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={newHabit.input}
+                    onValueChange={(value) => handleInputChange("input", value)}
+                    style={{ color: "#000" }}
+                  >
+                    <Picker.Item label="checkbox (for one-time habits)" value="boolean" />
+                    <Picker.Item label="number (for repeated habits)" value="integer" />
+                  </Picker>
+                </View>
 
                 <Text style={[styles.labelText, { marginBottom: 10 }]}>frequency</Text>
-                <TextInput
-                  value={newHabit.frequency}
-                  onChangeText={(text) => handleInputChange("frequency", text)} 
-                  style={[styles.input, { color: "#000" }]}
-                />
+                
+                {/* dropdown based on client feedback */}
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={newHabit.frequency}
+                    onValueChange={(value) => handleInputChange("frequency", value)}
+                    style={{ color: "#000" }}
+                  >
+                    <Picker.Item label="daily" value="daily" />
+                    <Picker.Item label="weekly" value="weekly" />
+                    <Picker.Item label="monthly" value="monthly" />
+                    <Picker.Item label="specific days" value="specificDays" />
+                    <Picker.Item label="custom" value="custom" />
+                  </Picker>
+                </View>
+
+                {/* custom input field for custom frequency */}
+                {newHabit.frequency === "custom" && (
+                  <View>
+                    <Text style={[styles.labelText, { marginTop: 10, marginBottom: 10 }]}>enter custom frequency</Text>
+                  <TextInput
+                    value={newHabit.customFrequency || ""}
+                    onChangeText={(text) => handleInputChange("customFrequency", text)}
+                    style={[styles.input, { color: "#000" }]}
+                  />
+                  </View>
+                )}
+
                 <View style={{ flex: 1, justifyContent: "flex-end", marginTop: 20 }}>
                   <View style={styles.buttonContainer2}>
                     <TouchableOpacity style={styles.saveButton} onPress={saveHabit}>
@@ -294,14 +329,49 @@ const HabitTracker = () => {
                   style={[styles.input, { color: "#000", marginBottom: 20 }]}
                 />
 
+                <Text style={[styles.labelText, { marginBottom: 10 }]}>input type</Text>
+
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={editingHabit.input}
+                    onValueChange={(value) => handleEditInputChange("input", value)}
+                    style={{ color: "#000" }}
+                  >
+                    <Picker.Item label="checkbox (for one-time habits)" value="boolean" />
+                    <Picker.Item label="number (for repeated habits)" value="integer" />
+                  </Picker>
+                </View>
+
                 <Text style={[styles.labelText, { marginBottom: 10 }]}>frequency</Text>
-                <TextInput
-                  value={editingHabit.frequency}
-                  onChangeText={(text) => handleEditInputChange("frequency", text)}
-                  style={[styles.input, { color: "#000" }]}
-                />
-                <View style={{ flex: 1, justifyContent: "flex-end", marginTop: 20 }}>
-                  <View style={styles.buttonContainer2}>
+                {/* dropdown based on client feedback */}
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={editingHabit.frequency}
+                    onValueChange={(value) => handleEditInputChange("frequency", value)}
+                    style={{ color: "#000" }}
+                  >
+                    <Picker.Item label="daily" value="daily" />
+                    <Picker.Item label="weekly" value="weekly" />
+                    <Picker.Item label="monthly" value="monthly" />
+                    <Picker.Item label="specific days" value="specificDays" />
+                    <Picker.Item label="custom" value="custom" />
+                  </Picker>
+                </View>
+
+                {/* custom input field for custom frequency */}
+                {editingHabit.frequency === "custom" && (
+                  <View>
+                    <Text style={[styles.labelText, { marginTop: 10, marginBottom: 10 }]}>enter custom frequency</Text>
+                  <TextInput
+                    value={newHabit.customFrequency || editingHabit.frequency}
+                    onChangeText={(text) => handleInputChange("customFrequency", text)}
+                    style={[styles.input, { color: "#000" }]}
+                  />
+                  </View>
+                )}
+
+                <View style={{ flex: 1, justifyContent: "flex-end" }}>
+                  <View style={[styles.buttonContainer2, {bottom: 0}]}>
                     <TouchableOpacity style={styles.saveButton} onPress={updateHabit}>
                       <Text style={styles.buttonText}>update</Text>
                     </TouchableOpacity>

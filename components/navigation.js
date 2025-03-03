@@ -7,22 +7,19 @@ const TabBar = ({ state, descriptors, navigation }) => {
     const primaryColor = '#ffe8d6';
     const lightGreen = '#b7b7a4';
     
-    // State to track keyboard visibility
     const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-    // Assign icons based on route names
     const icons = {
         index: Feather,
         log: AntDesign,
     };
 
     const iconNames = {
-        index: "home", // Icon for 'index' page
-        log: "book",   // Icon for 'log' page
+        index: "home",
+        log: "book", 
     };
 
     useEffect(() => {
-        // Event listeners for keyboard show/hide
         const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
             setKeyboardVisible(true);
         });
@@ -30,7 +27,6 @@ const TabBar = ({ state, descriptors, navigation }) => {
             setKeyboardVisible(false);
         });
 
-        // Cleanup listeners on unmount
         return () => {
             keyboardDidShowListener.remove();
             keyboardDidHideListener.remove();
@@ -38,7 +34,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
     }, []);
 
     if (keyboardVisible) {
-        return null; // Return null to hide the tab bar when keyboard is up
+        return null;
     }
 
     return (
@@ -65,7 +61,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
                     }
                 };
 
-                if (route.name === 'log' || route.name === 'progress') { // so the log component doesn't show on tab bar
+                if (route.name === 'log' || route.name === 'progress') {
                   return null;
                 }
 

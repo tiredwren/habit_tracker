@@ -8,9 +8,9 @@ import styles from "../assets/styles/styles";
 import { useLocalSearchParams } from "expo-router/build/hooks"; 
 
 const LogProgress = () => { 
-    const [newProgress, setProgressLog] = useState({ reflection: "", image: null }); 
-    const [progressLogs, setProgressLogs] = useState([]); // State to hold progress logs for the day
-    const [editingLogId, setEditingLogId] = useState(null); // State to track if editing a log
+    const [newProgress, setProgressLog] = useState({ reflection: "", image: null, inputType: "text", numericInput: "" }); 
+    const [progressLogs, setProgressLogs] = useState([]); 
+    const [editingLogId, setEditingLogId] = useState(null); 
     const userId = "user_id";  
     const { width } = Dimensions.get('window'); 
     const router = useRouter(); 
@@ -35,41 +35,41 @@ const LogProgress = () => {
     }; 
 
     const saveProgressLog = async () => {
-        if (newProgress.reflection && newProgress.image) {
+        if (newProgress.reflection || newProgress.numericInput || newProgress.image) {
             try {
-                const currentDate = new Date().toISOString().split("T")[0]; // eg "2025-02-20"
+                const currentDate = new Date().toISOString().split("T")[0];
                 const progressRef = doc(db, "users", userId, "habits", habitRef, "progress", currentDate);
-    
+
                 if (editingLogId) {
-                    // If editing an existing log, update it using the editingLogId
                     const editingLogRef = doc(db, "users", userId, "habits", habitRef, "progress", editingLogId);
                     await setDoc(editingLogRef, {
                         reflection: newProgress.reflection,
                         image: newProgress.image,
+                        inputType: newProgress.inputType,
+                        numericInput: newProgress.numericInput,
                     }, { merge: true });
-                    setEditingLogId(null); // Reset editing state
+                    setEditingLogId(null); 
                 } else {
-                    // Create a new log
                     const newLogRef = doc(collection(db, "users", userId, "habits", habitRef, "progress"));
                     await setDoc(newLogRef, {
                         date: currentDate,
                         reflection: newProgress.reflection,
                         image: newProgress.image,
+                        inputType: newProgress.inputType,
+                        numericInput: newProgress.numericInput,
                     });
                 }
-    
-                // Clear inputs
-                setProgressLog({ reflection: "", image: null });
-                fetchProgressLogs(); // Refresh logs after saving
+
+                setProgressLog({ reflection: "", image: null, inputType: "text", numericInput: "" });
+                fetchProgressLogs();
             } catch (error) {
                 alert("Error saving progress: " + error.message);
             }
         } else {
-            alert("Make sure you've filled all the fields!");
+            alert("Make sure you've filled at least one field!");
         }
     };
     
-
     const fetchProgressLogs = async () => { 
         const currentDate = new Date().toISOString().split("T")[0]; 
         const progressRef = collection(db, "users", userId, "habits", habitRef, "progress");
@@ -78,18 +78,18 @@ const LogProgress = () => {
         const querySnapshot = await getDocs(q);
         const logs = [];
         querySnapshot.forEach((doc) => {
-            logs.push({ id: doc.id, ...doc.data() }); // get already saved logs in array
+            logs.push({ id: doc.id, ...doc.data() });
         });
-        setProgressLogs(logs); // sets logs in state
+        setProgressLogs(logs);
     };
 
     useEffect(() => { 
-        fetchProgressLogs(); // Fetch logs on component mount
+        fetchProgressLogs(); 
     }, [habitRef]); 
 
     const handleLogSelect = (log) => {
-        setProgressLog({ reflection: log.reflection, image: log.image });
-        setEditingLogId(log.id); // Set the log ID for editing
+        setProgressLog({ reflection: log.reflection, image: log.image, inputType: log.inputType, numericInput: log.numericInput });
+        setEditingLogId(log.id); 
     };
 
     return ( 
@@ -101,10 +101,7 @@ const LogProgress = () => {
                 <Text style={[styles.title2, {color: "#b7b7a4", marginBottom: 0}]}>l o g   p r o g r e s s</Text> 
                 <Link 
                     style={[styles.buttonText, {color: "#000", alignSelf:"center"}]} 
-                    href={{
-                        pathname:"/progress",
-                        params: { habitId: habitRef }
-                    }}>see progress</Link>
+                    href={{ pathname:"/progress", params: { habitId: habitRef } }}>see progress</Link>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}> 
                     <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{marginBottom: 1}}> 
                         <View style={styles.addHabitContainer}> 
@@ -127,6 +124,28 @@ const LogProgress = () => {
                                 style={[styles.input, { color: "#000", minHeight: 170, textAlignVertical: "top" }]} 
                             /> 
 
+                            {/* New Input Type Field */}
+                            <Text style={[styles.labelText, { marginBottom: 10, marginTop: 20 }]}>input type</Text>
+                            <TextInput
+                                value={newProgress.inputType}
+                                onChangeText={(text) => handleInputChange("inputType", text)}
+                                placeholder="Enter input type (number/checkbox)"
+                                style={[styles.input, { color: "#000", minHeight: 40 }]}
+                            />
+
+                            {/* Conditionally render numeric input field based on input type */}
+                            {newProgress.inputType === "number" && (
+                                <>
+                                    <Text style={[styles.labelText, { marginBottom: 10, marginTop: 20 }]}>numeric input</Text>
+                                    <TextInput
+                                        keyboardType="numeric"
+                                        value={newProgress.numericInput}
+                                        onChangeText={(text) => handleInputChange("numericInput", text)}
+                                        style={[styles.input, { color: "#000", minHeight: 40 }]}
+                                    />
+                                </>
+                            )}
+
                             {/* display all of day's progress logs */}
                             { progressLogs.length > 0 && (
                             <View style={{ marginTop: 20 }}>
@@ -136,15 +155,14 @@ const LogProgress = () => {
                                     <TouchableOpacity 
                                         key={log.id} 
                                         style={[styles.cardContainer, {borderWidth: 1,}]}
-                                        onPress={() => handleLogSelect(log)} // populate fields when clicked
+                                        onPress={() => handleLogSelect(log)}
                                     >
-                                        <Text style={styles.logText}>{log.reflection}</Text> {/* card shows distinct reflections */}
+                                        <Text style={styles.logText}>{log.reflection}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
                             )}
 
-                            {/* Flexible space to push buttons to the bottom */}
                             <View style={{ flex: 1, justifyContent: "flex-end", marginBottom: "30%", marginTop: "40%" }}> 
                                 <View style={styles.buttonContainer2}> 
                                     <TouchableOpacity style={styles.saveButton} onPress={saveProgressLog}> 
@@ -163,4 +181,4 @@ const LogProgress = () => {
     ); 
 } 
 
-export default LogProgress;
+export default LogProgress; 

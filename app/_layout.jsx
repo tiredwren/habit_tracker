@@ -6,9 +6,8 @@ import * as Font from 'expo-font';
 import { useFonts } from 'expo-font';
 
 const _layout = () => {
-    // Load the Jost font
     const [fontsLoaded] = useFonts({
-        'Jost': require('../assets/fonts/Jost/Jost-VariableFont_wght.ttf'), // Adjust the path to your font file
+        'Jost': require('../assets/fonts/Jost/Jost-VariableFont_wght.ttf'), 
     });
     
 

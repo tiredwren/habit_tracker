@@ -45,8 +45,9 @@ const styles = StyleSheet.create({
 
     cardContainerText: {
         fontSize: 25,
-        ...textStyles, // Apply base text style
+        ...textStyles,
         textAlignVertical: 'center',
+        marginRight: 2,
     },
 
     addHabitContainer: {
@@ -226,10 +227,19 @@ const styles = StyleSheet.create({
 
     deleteButton: {
       position: "absolute",
-      top: "61%",
+      top: "60%",
       right: "35%",
       backgroundColor: "transparent", // or any other styling you prefer
     },
+
+    pickerContainer: {
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 50,
+        marginBottom: 10,
+        width: "92%",
+        alignSelf: "center"
+      },      
     
 });
 

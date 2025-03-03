@@ -16,9 +16,9 @@ const TabBarButton = (props) => {
         paddingHorizontal: isFocused ? 18 : 14,
         paddingVertical: isFocused ? 10 : 8,
         borderRadius: 50,
-        flexDirection: 'row', // align icon and text when focused
+        flexDirection: 'row',
         alignItems: 'center',
-        gap: isFocused ? 6 : 0, // add spacing between icon and text when focused
+        gap: isFocused ? 6 : 0, 
     }));
 
     const animatedTextStyle = useAnimatedStyle(() => ({
@@ -26,7 +26,7 @@ const TabBarButton = (props) => {
         fontSize: isFocused ? 18 : 16,
         fontWeight: isFocused ? '600' : '500',
         letterSpacing: isFocused ? 0.5 : 0.3,
-        opacity: interpolate(scale.value, [0, 1], [0, 1]), // animation when text when focused
+        opacity: interpolate(scale.value, [0, 1], [0, 1]), 
     }));
 
     return (
