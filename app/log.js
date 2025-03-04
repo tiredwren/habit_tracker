@@ -1,14 +1,14 @@
-import { Link, router, useRouter } from "expo-router"; 
+import { Link, useRouter } from "expo-router"; 
 import { useEffect, useState } from "react"; 
 import { SafeAreaView, Dimensions, View, Text, TextInput, Image, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from "react-native"; 
 import * as ImagePicker from "expo-image-picker"; 
 import { db } from "./firebaseConfig"; 
-import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore"; 
+import { doc, setDoc, collection, query, where, getDocs, getDoc } from "firebase/firestore"; 
 import styles from "../assets/styles/styles"; 
 import { useLocalSearchParams } from "expo-router/build/hooks"; 
 
 const LogProgress = () => { 
-    const [newProgress, setProgressLog] = useState({ reflection: "", image: null, inputType: "text", numericInput: "" }); 
+    const [newProgress, setProgressLog] = useState({ reflection: "", image: null, inputType: "", numericInput: "" }); 
     const [progressLogs, setProgressLogs] = useState([]); 
     const [editingLogId, setEditingLogId] = useState(null); 
     const userId = "user_id";  
@@ -16,6 +16,46 @@ const LogProgress = () => {
     const router = useRouter(); 
     const params = useLocalSearchParams(); 
     const habitRef = params.habitRef;  
+
+    const fetchHabitDetails = async () => {
+        if (!habitRef) return;
+        try {
+            const habitDocRef = doc(db, "users", userId, "habits", habitRef);
+            const habitDoc = await getDoc(habitDocRef);
+            if (habitDoc.exists()) {
+                const habitData = habitDoc.data();
+                setProgressLog(prev => ({ ...prev, inputType: habitData.inputType || "string" }));
+            }
+        } catch (error) {
+            console.error("error fetching habit details:", error);
+        }
+    };
+
+    const fetchProgressLogs = async () => { 
+        if (!habitRef) return; 
+
+        setProgressLog(({ reflection: "", image: null, numericInput: "", inputType: "" }));
+
+        try {
+            const currentDate = new Date().toISOString().split("T")[0]; 
+            const progressCollectionRef = collection(db, "users", userId, "habits", habitRef, "progress");
+            const q = query(progressCollectionRef, where("date", "==", currentDate));
+            const querySnapshot = await getDocs(q);
+            
+            const logs = [];
+            querySnapshot.forEach((doc) => {
+                logs.push({ id: doc.id, ...doc.data() });
+            });
+            setProgressLogs(logs);
+        } catch (error) {
+            console.error("error fetching progress logs:", error);
+        }
+    };
+
+    useEffect(() => { 
+        fetchHabitDetails();
+        fetchProgressLogs(); 
+    }, [habitRef]); 
 
     const handleInputChange = (field, value) => { 
         setProgressLog({ ...newProgress, [field]: value }); 
@@ -35,13 +75,15 @@ const LogProgress = () => {
     }; 
 
     const saveProgressLog = async () => {
-        if (newProgress.reflection || newProgress.numericInput || newProgress.image) {
+        console.log(newProgress.reflection);
+        if (newProgress.reflection && newProgress.image) {
+            console.log(newProgress.inputType);
             try {
                 const currentDate = new Date().toISOString().split("T")[0];
-                const progressRef = doc(db, "users", userId, "habits", habitRef, "progress", currentDate);
+                const progressRef = collection(db, "users", userId, "habits", habitRef, "progress");
 
                 if (editingLogId) {
-                    const editingLogRef = doc(db, "users", userId, "habits", habitRef, "progress", editingLogId);
+                    const editingLogRef = doc(progressRef, editingLogId);
                     await setDoc(editingLogRef, {
                         reflection: newProgress.reflection,
                         image: newProgress.image,
@@ -50,7 +92,7 @@ const LogProgress = () => {
                     }, { merge: true });
                     setEditingLogId(null); 
                 } else {
-                    const newLogRef = doc(collection(db, "users", userId, "habits", habitRef, "progress"));
+                    const newLogRef = doc(progressRef);
                     await setDoc(newLogRef, {
                         date: currentDate,
                         reflection: newProgress.reflection,
@@ -60,33 +102,16 @@ const LogProgress = () => {
                     });
                 }
 
-                setProgressLog({ reflection: "", image: null, inputType: "text", numericInput: "" });
+                setProgressLog({ reflection: "", image: null, inputType: "", numericInput: "" });
                 fetchProgressLogs();
             } catch (error) {
-                alert("Error saving progress: " + error.message);
+                alert("error saving progress: " + error.message);
             }
         } else {
-            alert("Make sure you've filled at least one field!");
+            alert("make sure you've filled all the fields!");
         }
     };
     
-    const fetchProgressLogs = async () => { 
-        const currentDate = new Date().toISOString().split("T")[0]; 
-        const progressRef = collection(db, "users", userId, "habits", habitRef, "progress");
-        const q = query(progressRef, where("date", "==", currentDate));
-
-        const querySnapshot = await getDocs(q);
-        const logs = [];
-        querySnapshot.forEach((doc) => {
-            logs.push({ id: doc.id, ...doc.data() });
-        });
-        setProgressLogs(logs);
-    };
-
-    useEffect(() => { 
-        fetchProgressLogs(); 
-    }, [habitRef]); 
-
     const handleLogSelect = (log) => {
         setProgressLog({ reflection: log.reflection, image: log.image, inputType: log.inputType, numericInput: log.numericInput });
         setEditingLogId(log.id); 
@@ -124,43 +149,16 @@ const LogProgress = () => {
                                 style={[styles.input, { color: "#000", minHeight: 170, textAlignVertical: "top" }]} 
                             /> 
 
-                            {/* New Input Type Field */}
-                            <Text style={[styles.labelText, { marginBottom: 10, marginTop: 20 }]}>input type</Text>
-                            <TextInput
-                                value={newProgress.inputType}
-                                onChangeText={(text) => handleInputChange("inputType", text)}
-                                placeholder="Enter input type (number/checkbox)"
-                                style={[styles.input, { color: "#000", minHeight: 40 }]}
-                            />
-
-                            {/* Conditionally render numeric input field based on input type */}
-                            {newProgress.inputType === "number" && (
+                            {newProgress.inputType === "integer" && (
                                 <>
-                                    <Text style={[styles.labelText, { marginBottom: 10, marginTop: 20 }]}>numeric input</Text>
+                                    <Text style={[styles.labelText, { marginBottom: 10, marginTop: 20 }]}>how many times have you done this today?</Text>
                                     <TextInput
                                         keyboardType="numeric"
                                         value={newProgress.numericInput}
                                         onChangeText={(text) => handleInputChange("numericInput", text)}
-                                        style={[styles.input, { color: "#000", minHeight: 40 }]}
+                                        style={[ styles.input, {marginBottom: 20} ]}
                                     />
                                 </>
-                            )}
-
-                            {/* display all of day's progress logs */}
-                            { progressLogs.length > 0 && (
-                            <View style={{ marginTop: 20 }}>
-                                <Text style={[styles.title, {color: "#000", marginBottom: 0, marginTop: 20 }]}>other logs from today</Text>
-                                <Text style={[styles.labelText, {color: "#000", marginLeft: 0, marginBottom: 0, marginTop: 20, textAlign: "center" }]}>click on one to edit it, or fill out a new log above</Text>
-                                {progressLogs.map(log => (
-                                    <TouchableOpacity 
-                                        key={log.id} 
-                                        style={[styles.cardContainer, {borderWidth: 1,}]}
-                                        onPress={() => handleLogSelect(log)}
-                                    >
-                                        <Text style={styles.logText}>{log.reflection}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
                             )}
 
                             <View style={{ flex: 1, justifyContent: "flex-end", marginBottom: "30%", marginTop: "40%" }}> 
@@ -181,4 +179,4 @@ const LogProgress = () => {
     ); 
 } 
 
-export default LogProgress; 
+export default LogProgress;
