@@ -8,8 +8,8 @@ import styles from "../assets/styles/styles";
 import { useLocalSearchParams } from "expo-router/build/hooks"; 
 
 const LogProgress = () => { 
-    const [newProgress, setProgressLog] = useState({ reflection: "", image: null, inputType: "", numericInput: "" }); 
-    const [progressLogs, setProgressLogs] = useState([]); 
+    const [progressLog, setProgressLog] = useState({ reflection: "", image: null, inputType: "", numericInput: "" }); 
+    const [allProgressLogs, setAllProgressLogs] = useState([]); 
     const [editingLogId, setEditingLogId] = useState(null); 
     const userId = "user_id";  
     const { width } = Dimensions.get('window'); 
@@ -17,7 +17,7 @@ const LogProgress = () => {
     const params = useLocalSearchParams(); 
     const habitRef = params.habitRef;  
 
-    const fetchHabitDetails = async () => {
+    const getHabitDetails = async () => {
         if (!habitRef) return;
         try {
             const habitDocRef = doc(db, "users", userId, "habits", habitRef);
@@ -27,17 +27,18 @@ const LogProgress = () => {
                 setProgressLog(prev => ({ ...prev, inputType: habitData.inputType || "string" }));
             }
         } catch (error) {
-            console.error("error fetching habit details:", error);
+            console.error("error geting habit details:", error);
         }
     };
 
-    const fetchProgressLogs = async () => { 
+    const getAllProgressLogs = async () => { 
         if (!habitRef) return; 
 
         setProgressLog(({ reflection: "", image: null, numericInput: "", inputType: "" }));
 
         try {
-            const currentDate = new Date().toISOString().split("T")[0]; 
+            const currentDate = new Date().toLocaleDateString("en-US", "America/Los_Angeles").split("T")[0]; 
+            console.log(currentDate);
             const progressCollectionRef = collection(db, "users", userId, "habits", habitRef, "progress");
             const q = query(progressCollectionRef, where("date", "==", currentDate));
             const querySnapshot = await getDocs(q);
@@ -46,19 +47,19 @@ const LogProgress = () => {
             querySnapshot.forEach((doc) => {
                 logs.push({ id: doc.id, ...doc.data() });
             });
-            setProgressLogs(logs);
+            setAllProgressLogs(logs);
         } catch (error) {
-            console.error("error fetching progress logs:", error);
+            console.error("error geting progress logs:", error);
         }
     };
 
     useEffect(() => { 
-        fetchHabitDetails();
-        fetchProgressLogs(); 
+        getHabitDetails();
+        getAllProgressLogs(); 
     }, [habitRef]); 
 
     const handleInputChange = (field, value) => { 
-        setProgressLog({ ...newProgress, [field]: value }); 
+        setProgressLog({ ...progressLog, [field]: value }); 
     }; 
 
     const handleImageUpload = async () => { 
@@ -70,14 +71,14 @@ const LogProgress = () => {
         }); 
 
         if (!result.canceled) { 
-            setProgressLog({ ...newProgress, image: result.assets[0].uri }); 
+            setProgressLog({ ...progressLog, image: result.assets[0].uri }); 
         } 
     }; 
 
     const saveProgressLog = async () => {
-        console.log(newProgress.reflection);
-        if (newProgress.reflection && newProgress.image) {
-            console.log(newProgress.inputType);
+        console.log(progressLog.reflection);
+        if (progressLog.reflection && progressLog.image) {
+            console.log(progressLog.inputType);
             try {
                 const currentDate = new Date().toISOString().split("T")[0];
                 const progressRef = collection(db, "users", userId, "habits", habitRef, "progress");
@@ -85,25 +86,27 @@ const LogProgress = () => {
                 if (editingLogId) {
                     const editingLogRef = doc(progressRef, editingLogId);
                     await setDoc(editingLogRef, {
-                        reflection: newProgress.reflection,
-                        image: newProgress.image,
-                        inputType: newProgress.inputType,
-                        numericInput: newProgress.numericInput,
+                        reflection: progressLog.reflection,
+                        image: progressLog.image,
+                        inputType: progressLog.inputType,
+                        numericInput: progressLog.numericInput,
                     }, { merge: true });
                     setEditingLogId(null); 
                 } else {
                     const newLogRef = doc(progressRef);
                     await setDoc(newLogRef, {
                         date: currentDate,
-                        reflection: newProgress.reflection,
-                        image: newProgress.image,
-                        inputType: newProgress.inputType,
-                        numericInput: newProgress.numericInput,
+                        reflection: progressLog.reflection,
+                        image: progressLog.image,
+                        inputType: progressLog.inputType,
+                        numericInput: progressLog.numericInput,
                     });
                 }
 
                 setProgressLog({ reflection: "", image: null, inputType: "", numericInput: "" });
-                fetchProgressLogs();
+                getAllProgressLogs
+    
+    ();
             } catch (error) {
                 alert("error saving progress: " + error.message);
             }
@@ -130,9 +133,9 @@ const LogProgress = () => {
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}> 
                     <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{marginBottom: 1}}> 
                         <View style={styles.addHabitContainer}> 
-                            {newProgress.image && ( 
+                            {progressLog.image && ( 
                                 <Image 
-                                    source={{ uri: newProgress.image }} 
+                                    source={{ uri: progressLog.image }} 
                                     style={{ marginBottom: 10, width: "100%", height: 150, borderRadius: 10 }} 
                                 /> 
                             )} 
@@ -144,21 +147,38 @@ const LogProgress = () => {
                             <Text style={[styles.labelText, { marginBottom: 10, marginTop: 20 }]}>reflection</Text> 
                             <TextInput  
                                 multiline={true} 
-                                value={newProgress.reflection} 
+                                value={progressLog.reflection} 
                                 onChangeText={(text) => handleInputChange("reflection", text)} 
                                 style={[styles.input, { color: "#000", minHeight: 170, textAlignVertical: "top" }]} 
                             /> 
 
-                            {newProgress.inputType === "integer" && (
+                            {progressLog.inputType === "integer" && (
                                 <>
                                     <Text style={[styles.labelText, { marginBottom: 10, marginTop: 20 }]}>how many times have you done this today?</Text>
                                     <TextInput
                                         keyboardType="numeric"
-                                        value={newProgress.numericInput}
+                                        value={progressLog.numericInput}
                                         onChangeText={(text) => handleInputChange("numericInput", text)}
                                         style={[ styles.input, {marginBottom: 20} ]}
                                     />
                                 </>
+                            )}
+
+                            {/* display all of day's progress logs */}
+                            { allProgressLogs.length > 0 && (
+                            <View style={{ marginTop: 20 }}>
+                                <Text style={[styles.title, {color: "#000", marginBottom: 0, marginTop: 20 }]}>other logs from today</Text>
+                                <Text style={[styles.labelText, {color: "#000", marginLeft: 0, marginBottom: 0, marginTop: 20, textAlign: "center" }]}>click on one to edit it, or fill out a new log above</Text>
+                                {allProgressLogs.map(log => (
+                                    <TouchableOpacity 
+                                        key={log.id} 
+                                        style={[styles.cardContainer, {borderWidth: 1,}]}
+                                        onPress={() => handleLogSelect(log)}
+                                    >
+                                        <Text style={styles.logText}>{log.reflection}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
                             )}
 
                             <View style={{ flex: 1, justifyContent: "flex-end", marginBottom: "30%", marginTop: "40%" }}> 

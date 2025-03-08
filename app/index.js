@@ -175,7 +175,7 @@ const HabitTracker = () => {
         </Text>
         <View style={styles.streakBar}>
             <View style={{ 
-                width: `${(streak / 30) * 100}%`, // Assuming 30 days max for a full bar
+                width: `${(streak / 30) * 100}%`, // make dynamic
                 backgroundColor: '#d4a373', 
                 height: '100%' 
             }} />
@@ -307,7 +307,7 @@ const HabitTracker = () => {
         </KeyboardAvoidingView>
       )}
 
-      {/* Edit habit dialog */}
+      {/* edit habit dialog */}
       {isEditDialogOpen && (
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
