@@ -55,7 +55,7 @@ const HabitTracker = () => {
     };
   
     getCurrency();
-  }, [userId]); // This effect runs when userId changes
+  }, [userId]); // runs when userId changes
   
   console.log("currency: ", currency);
   

@@ -38,7 +38,7 @@ const LogProgress = () => {
         setProgressLog(({ reflection: "", image: null, numericInput: "" }));
 
         try {
-            const currentDate = new Date().toISOString().split("T")[0]; // Ensuring the correct format
+            const currentDate = new Date().toISOString().split("T")[0]; // making sure it's stored in the correct format
             const progressCollectionRef = collection(db, "users", userId, "habits", habitRef, "progress");
             const q = query(progressCollectionRef, where("date", "==", currentDate));
             const querySnapshot = await getDocs(q);

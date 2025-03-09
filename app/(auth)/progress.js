@@ -112,15 +112,15 @@ const ProgressPage = () => {
                     images.push({ id: doc.id, uri: foundData.image, reflection: foundData.reflection, date: foundData.date || "" });
                 }
 
-                // Getting the graph data
+                // getting the graph data
                 if (foundData.numericInput && foundData.date) {
-                    Gdata.push({ x: foundData.date, y: Number(foundData.numericInput) }); // Updated
+                    Gdata.push({ x: foundData.date, y: Number(foundData.numericInput) });
                 }
 
                 reflections.push(foundData.reflection);
             });
 
-            setHabitProgress({ images, inputs: reflections, graphData: Gdata }); // Updated
+            setHabitProgress({ images, inputs: reflections, graphData: Gdata });
         } else {
             setStreak(0);
         }
@@ -134,13 +134,13 @@ const ProgressPage = () => {
             if (userId) {
                 const userDoc = await getDoc(doc(db, "users", userId));
                 if (userDoc.exists()) {
-                    setCurrency(userDoc.data().currency || 0); // Set currency state
+                    setCurrency(userDoc.data().currency || 0); // get total user currency
                 }
             }
         };
 
         getProgress();
-        getCurrency(); // Fetch currency when component mounts
+        getCurrency(); // get currency when component mounts
     }, [habitRef]);
 
     const openFullLog = (image, date, reflection) => {
