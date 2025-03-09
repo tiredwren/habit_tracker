@@ -18,10 +18,11 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { db } from "./firebaseConfig";
-import { doc, setDoc, collection, onSnapshot, deleteDoc, getDocs, query, orderBy } from "firebase/firestore";
+import { doc, setDoc, collection, onSnapshot, deleteDoc, getDocs, query, orderBy, getDoc } from "firebase/firestore";
 import styles from "../../assets/styles/styles";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { router } from "expo-router";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 const HabitTracker = () => {
   const [habits, setHabits] = useState([]);
@@ -32,18 +33,32 @@ const HabitTracker = () => {
   const [streak, setStreak] = useState(0);
   const [userId, setUserId] = useState(null);
   const { width } = Dimensions.get("window");
+  const [currency, setCurrency] = useState(0)
 
   useEffect(() => {
     const currentUser = auth().currentUser;
     if (currentUser) {
       setUserId(currentUser.email);
     } else {
-      console.log("User not authenticated");
+      console.log("user not authenticated");
     }
-  }, []);
-
-  console.log("auth ", userId);
-
+  }, []); // runs once on component mount
+  
+  useEffect(() => {
+    const getCurrency = async () => {
+      if (userId) {
+        const userDoc = await getDoc(doc(db, "users", userId));
+        if (userDoc.exists()) {
+          setCurrency(userDoc.data().currency || 0); // set according to user currency
+        }
+      }
+    };
+  
+    getCurrency();
+  }, [userId]); // This effect runs when userId changes
+  
+  console.log("currency: ", currency);
+  
   const handleInputChange = (name, value) => {
     setNewHabit({ ...newHabit, [name]: value });
   };
@@ -161,7 +176,6 @@ const HabitTracker = () => {
     setStreak(currentStreak);
 };
 
-
   useEffect(() => {
     if (userId) {
       const fetchHabits = async () => {
@@ -183,17 +197,20 @@ const HabitTracker = () => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#b7b7a4", width: width }}>
       <View style={styles.streakContainer}>
-        <Text style={[styles.labelText, {marginBottom: 0, marginLeft: 2, fontWeight:"bold"}]}>
-          {streak} / 30 day streak ✧.*
-        </Text>
-        <View style={styles.streakBar}>
-            <View style={{ 
-                width: `${(streak / 30) * 100}%`, // make dynamic
-                backgroundColor: '#d4a373', 
-                height: '100%' 
-            }} />
-        </View>
-      </View>
+                <Text style={[styles.labelText, { marginBottom: 0, marginLeft: 2, fontWeight: "bold" }]}>
+                    {streak} / {30} day streak ✧.*
+                </Text>
+                <View style={styles.streakBar}>
+                    <View style={{
+                        width: `${(streak / 30) * 100}%`,
+                        backgroundColor: '#d4a373',
+                        height: '100%'
+                    }} />
+                </View>
+                <Text style={[styles.labelText, { marginBottom: 0, marginLeft: 2, fontWeight: "bold" }]}>
+                    coins: {currency} 💰
+                </Text>
+            </View>
       <Text style={[styles.title]}>y o u r   h a b i t s</Text>
       <FlatList
         data={habits}

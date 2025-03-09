@@ -93,10 +93,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#6b705c',
         paddingVertical: 20,
         borderRadius: 10,
-        shadowOffset: { width: 0, height: 6 },
-        shadowRadius: 10,
-        shadowOpacity: 0.3,
-        elevation: 5,
     },
 });
 

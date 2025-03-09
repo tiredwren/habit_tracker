@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import styles from "../assets/styles/styles";
 import auth from "@react-native-firebase/auth";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -47,18 +48,18 @@ const LoginPage = () => {
     };
 
     return (
+        <SafeAreaView style={styles.greenContainer}>
         <View style={styles.authContainer}>
-            <Text style={styles.title}>l o g i n</Text>
+            <Text style={styles.title}>{isLogin ? "l o g i n" : "s i g n   u p"}</Text>
 
             <TextInput
                 style={styles.input}
                 value={email}
                 onChangeText={handleEmailChange}
                 autoCapitalize="none"
-                placeholder="Email"
             />
             <View>
-                <Text style={styles.labelText}>email</Text>
+                <Text style={[styles.labelText, {marginTop: 10, marginBottom: 20}]}>email</Text>
             </View>
 
             <TextInput
@@ -66,10 +67,9 @@ const LoginPage = () => {
                 value={password}
                 onChangeText={handlePasswordChange}
                 secureTextEntry
-                placeholder="Password"
             />
             <View>
-                <Text style={styles.labelText}>password</Text>
+                <Text style={[styles.labelText, {marginTop: 10, marginBottom: 0}]}>password</Text>
             </View>
 
             <View style={styles.buttonContainer}>
@@ -84,6 +84,7 @@ const LoginPage = () => {
                 </Text>
             </View>
         </View>
+        </SafeAreaView>
     );
 };
 

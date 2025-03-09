@@ -74,8 +74,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#cb997e',
         padding: 16,
         borderRadius: 8,
-        elevation: 3,
         alignSelf: 'center',
+        marginVertical: "50%"
     },
 
     title: {

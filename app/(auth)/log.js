@@ -2,7 +2,7 @@ import { Link, useRouter } from "expo-router";
 import { useEffect, useState } from "react"; 
 import { SafeAreaView, Dimensions, View, Text, TextInput, Image, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from "react-native"; 
 import * as ImagePicker from "expo-image-picker"; 
-import auth, { onAuthStateChanged } from "@react-native-firebase/auth";
+import auth from "@react-native-firebase/auth";
 import { db } from "./firebaseConfig"; 
 import { doc, setDoc, collection, query, where, getDocs, getDoc } from "firebase/firestore"; 
 import styles from "../../assets/styles/styles"; 
@@ -12,12 +12,12 @@ const LogProgress = () => {
     const [progressLog, setProgressLog] = useState({ reflection: "", image: null, inputType: "", numericInput: "" }); 
     const [allProgressLogs, setAllProgressLogs] = useState([]); 
     const [editingLogId, setEditingLogId] = useState(null); 
-    const [userId, setUserId] = useState(null);
+    const userId = auth().currentUser.email
     const { width } = Dimensions.get('window'); 
     const router = useRouter(); 
     const params = useLocalSearchParams(); 
     const habitRef = params.habitRef;  
-    
+
     const getHabitDetails = async () => {
         if (!habitRef) return;
         try {
@@ -31,19 +31,6 @@ const LogProgress = () => {
             console.error("error geting habit details:", error);
         }
     };
-
-    // Listen for auth state changes
-    useEffect(() => {
-        const unsubscribe = auth().onAuthStateChanged(user => {
-            if (user) {
-                setUserId(user.email);
-            }
-        });
-
-        // Cleanup subscription on unmount
-        return () => unsubscribe();
-    }, [router]);
-
 
     const getAllProgressLogs = async () => { 
         if (!habitRef) return; 
@@ -65,11 +52,9 @@ const LogProgress = () => {
     
     useEffect(() => { 
         setProgressLog({ reflection: "", image: null, numericInput: "" });
-        if (userId) {
-            getHabitDetails();
-            getAllProgressLogs();
-        }
-    }, [habitRef, userId]);
+        getHabitDetails();
+        getAllProgressLogs(); 
+    }, [habitRef]);
     
     const handleInputChange = (field, value) => { 
         setProgressLog({ ...progressLog, [field]: value }); 
