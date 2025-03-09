@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Dimensions } from "react-native";
+import auth from "@react-native-firebase/auth";
 import { LineChart } from "react-native-chart-kit";
 import {
     SafeAreaView,
@@ -17,7 +18,7 @@ import {
     Platform
 } from "react-native";
 import { db } from "./firebaseConfig";
-import styles from "../assets/styles/styles";
+import styles from "../../assets/styles/styles";
 
 const ProgressPage = () => {
     const [habitProgress, setHabitProgress] = useState({ images: [], inputs: [], graphData: [] });
@@ -28,17 +29,26 @@ const ProgressPage = () => {
     const [selectedImageUri, setSelectedImageUri] = useState(null);
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedReflection, setSelectedReflection] = useState("");
+    const [loading, setLoading] = useState(true); // New loading state
 
     const params = useLocalSearchParams();
     const habitRef = params.habitId;
-    const userId = "user_id"; // replace with actual userID
     const router = useRouter();
 
     useEffect(() => {
-        setHabitProgress({ images: [], inputs: [], graphData: [] });
-        setStreak(0);
+        const user = auth().currentUser;
+
+        if (!user) {
+            console.log("user is not authenticated, redirecting to index...");
+            return; // Exit if there is no user
+        }
+
+        const userId = user.email;
 
         const getProgress = async () => {
+            setHabitProgress({ images: [], inputs: [], graphData: [] });
+            setStreak(0);
+
             if (!habitRef) return;
 
             const progressRef = collection(db, "users", userId, "habits", habitRef, "progress");
@@ -94,11 +104,13 @@ const ProgressPage = () => {
                 }
             } catch (error) {
                 console.error("error getting progress:", error);
+            } finally {
+                setLoading(false); // Set loading to false after data fetching is complete
             }
         };
 
         getProgress();
-    }, [habitRef]);
+    }, [habitRef, router]);
 
     const openFullLog = (image, date, reflection) => {
         setIsDialogOpen(true);
@@ -106,6 +118,10 @@ const ProgressPage = () => {
         setSelectedDate(date);
         setSelectedReflection(reflection);
     };
+
+    if (loading) {
+        return <Text>Loading...</Text>; // Optional: Show a loading state while fetching data
+    }
 
     return (
         <SafeAreaView style={{backgroundColor: "#b7b7a4", height: "100%", }}>
@@ -213,7 +229,7 @@ const ProgressPage = () => {
                                 <Image source={{ uri: selectedImageUri }} style={{ marginBottom: 10, width: "100%", height: 150, borderRadius: 10 }} />
                                 <Text style={[styles.labelText, { marginLeft: 2 }]}>{selectedReflection}</Text>
                                 <TouchableOpacity style={[styles.cancelButton, { top: "20%" }]} onPress={() => setIsDialogOpen(false)}>
-                                    <Text style={styles.buttonText}>exit</Text>
+                                    <Text style={styles.buttonText}>close</Text>
                                 </TouchableOpacity>
                             </View>
                         </ScrollView>

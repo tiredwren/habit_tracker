@@ -2,21 +2,22 @@ import { Link, useRouter } from "expo-router";
 import { useEffect, useState } from "react"; 
 import { SafeAreaView, Dimensions, View, Text, TextInput, Image, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from "react-native"; 
 import * as ImagePicker from "expo-image-picker"; 
+import auth, { onAuthStateChanged } from "@react-native-firebase/auth";
 import { db } from "./firebaseConfig"; 
 import { doc, setDoc, collection, query, where, getDocs, getDoc } from "firebase/firestore"; 
-import styles from "../assets/styles/styles"; 
+import styles from "../../assets/styles/styles"; 
 import { useLocalSearchParams } from "expo-router/build/hooks"; 
 
 const LogProgress = () => { 
     const [progressLog, setProgressLog] = useState({ reflection: "", image: null, inputType: "", numericInput: "" }); 
     const [allProgressLogs, setAllProgressLogs] = useState([]); 
     const [editingLogId, setEditingLogId] = useState(null); 
-    const userId = "user_id";  
+    const [userId, setUserId] = useState(null);
     const { width } = Dimensions.get('window'); 
     const router = useRouter(); 
     const params = useLocalSearchParams(); 
     const habitRef = params.habitRef;  
-
+    
     const getHabitDetails = async () => {
         if (!habitRef) return;
         try {
@@ -24,40 +25,52 @@ const LogProgress = () => {
             const habitDoc = await getDoc(habitDocRef);
             if (habitDoc.exists()) {
                 const habitData = habitDoc.data();
-                setProgressLog(prev => ({ ...prev, inputType: habitData.inputType || "string" }));
+                setProgressLog(prev => ({ ...prev, inputType: habitData.input || "string" }));
             }
         } catch (error) {
             console.error("error geting habit details:", error);
         }
     };
 
+    // Listen for auth state changes
+    useEffect(() => {
+        const unsubscribe = auth().onAuthStateChanged(user => {
+            if (user) {
+                setUserId(user.email);
+            }
+        });
+
+        // Cleanup subscription on unmount
+        return () => unsubscribe();
+    }, [router]);
+
+
     const getAllProgressLogs = async () => { 
         if (!habitRef) return; 
-
-        setProgressLog(({ reflection: "", image: null, numericInput: "", inputType: "" }));
+    
+        setProgressLog(({ reflection: "", image: null, numericInput: "" }));
 
         try {
-            const currentDate = new Date().toLocaleDateString("en-US", "America/Los_Angeles").split("T")[0]; 
-            console.log(currentDate);
+            const currentDate = new Date().toISOString().split("T")[0]; // Ensuring the correct format
             const progressCollectionRef = collection(db, "users", userId, "habits", habitRef, "progress");
             const q = query(progressCollectionRef, where("date", "==", currentDate));
             const querySnapshot = await getDocs(q);
             
-            const logs = [];
-            querySnapshot.forEach((doc) => {
-                logs.push({ id: doc.id, ...doc.data() });
-            });
+            const logs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
             setAllProgressLogs(logs);
         } catch (error) {
-            console.error("error geting progress logs:", error);
+            console.error("Error getting progress logs:", error);
         }
     };
-
+    
     useEffect(() => { 
-        getHabitDetails();
-        getAllProgressLogs(); 
-    }, [habitRef]); 
-
+        setProgressLog({ reflection: "", image: null, numericInput: "" });
+        if (userId) {
+            getHabitDetails();
+            getAllProgressLogs();
+        }
+    }, [habitRef, userId]);
+    
     const handleInputChange = (field, value) => { 
         setProgressLog({ ...progressLog, [field]: value }); 
     }; 
@@ -104,9 +117,7 @@ const LogProgress = () => {
                 }
 
                 setProgressLog({ reflection: "", image: null, inputType: "", numericInput: "" });
-                getAllProgressLogs
-    
-    ();
+                getAllProgressLogs();
             } catch (error) {
                 alert("error saving progress: " + error.message);
             }

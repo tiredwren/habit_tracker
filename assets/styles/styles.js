@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
 import './fonts.css';
+import { StyleSheet } from 'react-native';
 
 const textStyles = {
     fontFamily: 'Jost',
@@ -75,22 +75,23 @@ const styles = StyleSheet.create({
         padding: 16,
         borderRadius: 8,
         elevation: 3,
+        alignSelf: 'center',
     },
 
     title: {
-      fontSize: 30,
-      marginBottom: 25,
-      textAlign: 'center',
-      color: '#ffe8d6',
-      ...textStyles, // Apply base text style
-  },
+        fontSize: 30,
+        marginBottom: 25,
+        textAlign: 'center',
+        color: '#ffe8d6',
+        ...textStyles,
+    },
 
     title2: {
         fontSize: 30,
         marginBottom: 25,
         textAlign: 'center',
         color: '#ffe8d6',
-        ...textStyles, // Apply base text style
+        ...textStyles,
     },
 
     input: {
@@ -109,6 +110,7 @@ const styles = StyleSheet.create({
         margin: 2,
         aspectRatio: 1,
     },
+    
     image: {
         width: '100%',
         height: '100%',
@@ -160,28 +162,30 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#fff',
         fontSize: 20,
-        ...textStyles, // Apply base text style
+        ...textStyles,
     },
 
     labelText: {
         textAlign: 'left',
         marginBottom: 5,
         marginLeft: '5%',
-        ...textStyles, // Apply base text style
+        ...textStyles,
     },
 
     toggleText: {
         color: '#ddbea9',
         textAlign: 'center',
     },
+
     bottomContainer: {
         marginBottom: 20,
     },
+
     emailText: {
         fontSize: 18,
         textAlign: 'center',
         marginBottom: 20,
-        ...textStyles, // Apply base text style
+        ...textStyles,
     },
 
     dialogBox: {
@@ -211,7 +215,7 @@ const styles = StyleSheet.create({
     streakText: {
         fontSize: 14,
         fontWeight: 'bold',
-        ...textStyles, // Apply base text style
+        ...textStyles,
     },
 
     streakBar: {
@@ -226,10 +230,10 @@ const styles = StyleSheet.create({
     },
 
     deleteButton: {
-      position: "absolute",
-      top: "60%",
-      right: "35%",
-      backgroundColor: "transparent", // or any other styling you prefer
+        position: "absolute",
+        top: "60%",
+        right: "35%",
+        backgroundColor: "transparent",
     },
 
     pickerContainer: {
@@ -239,8 +243,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         width: "92%",
         alignSelf: "center"
-      },      
-    
+    },
 });
 
 export default styles;
