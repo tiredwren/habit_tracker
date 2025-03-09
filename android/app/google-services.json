@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "826089848814",
+    "project_id": "cs-ia-2025",
+    "storage_bucket": "cs-ia-2025.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:826089848814:android:844e294f1a97c1bd41d8ff",
+        "android_client_info": {
+          "package_name": "com.sneha.cs_ia"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "826089848814-l136m893selibjm7gakg5t4g9scva471.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sneha.cs_ia",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "826089848814-q2g6s9ku4ucp0ilacreo233mc3mbhvv6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-Jtp7t53eSJ0Xwe957erQpJ-TypFMfy8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "826089848814-q2g6s9ku4ucp0ilacreo233mc3mbhvv6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "826089848814-hjkafnoa6re5ilhre73hgbcneedqaod3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.sneha.cs-ia"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
