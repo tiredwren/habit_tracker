@@ -25,15 +25,15 @@ const _layout = () => {
             tabBar={props => <TabBar {...props} />}
         >
             <Tabs.Screen
-                name="index"
+                name="log"
                 options={{
                     title: "habits",
                     tabBarIcon: "home",
                     headerRight: () => (
-                                    <TouchableOpacity onPress={() => router.replace('./')}>
-                                        <Text style={{ marginRight: 10, color: '#0000ff' }}>logout</Text>
-                                    </TouchableOpacity>
-                                )
+                    <TouchableOpacity onPress={() => router.replace('./')}>
+                        <Text style={{ marginRight: 10, color: '#0000ff' }}>logout</Text>
+                    </TouchableOpacity>
+                )
                 }}
             />
         </Tabs>

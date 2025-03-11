@@ -48,86 +48,89 @@ const ProgressPage = () => {
         setStreak(0);
 
         const getProgress = async () => {
-    if (!habitRef) return;
+            if (!habitRef) return;
 
-    const progressRef = collection(db, "users", userId, "habits", habitRef, "progress");
-    const userRef = doc(db, "users", userId);
-    const q = query(progressRef, orderBy("date", "desc"));
+            const progressRef = collection(db, "users", userId, "habits", habitRef, "progress");
+            const userRef = doc(db, "users", userId);
+            const q = query(progressRef, orderBy("date", "desc"));
 
-    try {
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const progressData = querySnapshot.docs.map(doc => doc.data());
-            const progressDates = progressData.map(entry => entry.date);
-            setLastDate(progressDates[0]);
+            try {
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    const progressData = querySnapshot.docs.map(doc => doc.data());
+                    const progressDates = progressData.map(entry => entry.date);
+                    setLastDate(progressDates[0]);
 
-            // calculate streak
-            let currentStreak = 0;
-            let today = new Date();
-            today.setHours(0, 0, 0, 0);
+                    // calculate streak
+                    let currentStreak = 0;
+                    let today = new Date();
+                    today.setHours(0, 0, 0, 0);
 
-            for (let i = 0; i < progressDates.length; i++) {
-                let progressDate = new Date(progressDates[i]);
-                progressDate.setHours(0, 0, 0, 0);
-                let difference = (today - progressDate) / (1000 * 60 * 60 * 24);
-                if (difference === currentStreak || difference === currentStreak + 1) {
-                    currentStreak++;
+                    let streakValid = true;
+
+                    for (let i = 0; i < progressDates.length && streakValid; i++) { // looping through all progress logs
+                        let progressDate = new Date(progressDates[i]);
+                        progressDate.setHours(0, 0, 0, 0); // streak only increases for separate dates, not separate times
+                        let difference = (today - progressDate) / (1000 * 60 * 60 * 24);
+                        
+                        if (difference === currentStreak || difference === currentStreak + 1) { // only update streak if progress logs 
+                        // are consecutive
+                            currentStreak++;
+                        } else {
+                            streakValid = false; // stop updating when streak is broken (not consecutive)
+                        }
+                    }
+                    // get user's last currency update date
+                    const userDoc = await getDoc(userRef);
+                    const lastCurrencyUpdate = userDoc.data().lastCurrencyUpdate ? new Date(userDoc.data().lastCurrencyUpdate) : null;
+
+                    // update currency if streak reaches 1 day and it's a new day
+                    if (currentStreak >= goal && (!lastCurrencyUpdate || today > lastCurrencyUpdate)) {
+                        await updateDoc(userRef, {
+                            currency: increment(5), // increase currency by 5
+                            lastCurrencyUpdate: today, // change last currency update date
+                        });
+                        setCurrency(prev => prev + 5); // change local currency state
+                        currentStreak = 0; // reset streak after earning currency
+                    }
+
+                    // update streak goal
+                    if (currentStreak > 0) {
+                        setStreak(currentStreak);
+                        const newGoal = 5 * (Math.floor(currentStreak / 1) + 1); // update goal based on current streak
+                        console.log(`new goal: ${newGoal}`); // for debugging
+                        setGoal(newGoal)
+                    } else {
+                        setStreak(0);
+                    }
+
+                    // get images, reflections, and graph data
+                    const images = [];
+                    const reflections = [];
+                    const Gdata = [];
+
+                    querySnapshot.forEach((doc) => {
+                        const foundData = doc.data();
+                        if (foundData.image) {
+                            images.push({ id: doc.id, uri: foundData.image, reflection: foundData.reflection, date: foundData.date || "" });
+                        }
+
+                        // getting the graph data
+                        if (foundData.numericInput && foundData.date) {
+                            Gdata.push({ x: foundData.date, y: Number(foundData.numericInput) });
+                        }
+
+                        reflections.push(foundData.reflection);
+                    });
+
+                    setHabitProgress({ images, inputs: reflections, graphData: Gdata });
                 } else {
-                    break;
+                    setStreak(0);
                 }
+            } catch (error) {
+                console.error("error getting progress:", error);
             }
-
-            // get user's last currency update date
-            const userDoc = await getDoc(userRef);
-            const lastCurrencyUpdate = userDoc.data().lastCurrencyUpdate ? new Date(userDoc.data().lastCurrencyUpdate) : null;
-
-            // update currency if streak reaches 1 day and it's a new day
-            if (currentStreak >= goal && (!lastCurrencyUpdate || today > lastCurrencyUpdate)) {
-                await updateDoc(userRef, {
-                    currency: increment(5), // increase currency by 5
-                    lastCurrencyUpdate: today, // change last currency update date
-                });
-                setCurrency(prev => prev + 5); // change local currency state
-                currentStreak = 0; // reset streak after earning currency
-            }
-
-            // update streak goal
-            if (currentStreak > 0) {
-                setStreak(currentStreak);
-                const newGoal = 5 * (Math.floor(currentStreak / 1) + 1); // update goal based on current streak
-                console.log(`new goal: ${newGoal}`); // for debugging
-                setGoal(newGoal)
-            } else {
-                setStreak(0);
-            }
-
-            // get images, reflections, and graph data
-            const images = [];
-            const reflections = [];
-            const Gdata = [];
-
-            querySnapshot.forEach((doc) => {
-                const foundData = doc.data();
-                if (foundData.image) {
-                    images.push({ id: doc.id, uri: foundData.image, reflection: foundData.reflection, date: foundData.date || "" });
-                }
-
-                // getting the graph data
-                if (foundData.numericInput && foundData.date) {
-                    Gdata.push({ x: foundData.date, y: Number(foundData.numericInput) });
-                }
-
-                reflections.push(foundData.reflection);
-            });
-
-            setHabitProgress({ images, inputs: reflections, graphData: Gdata });
-        } else {
-            setStreak(0);
-        }
-    } catch (error) {
-        console.error("error getting progress:", error);
-    }
-};
+        };
 
         // get total currency to display
         const getCurrency = async () => {
@@ -170,27 +173,28 @@ const ProgressPage = () => {
             </View>
 
             {/* input graph */}
-            <View style={{marginHorizontal: 10}}>
-            {habitProgress.graphData.length > 0 ? (
+            <View style={{marginHorizontal: 10}}> {/* center display */}
+            {habitProgress.graphData.length > 0 ? ( // only display graph if progress exists
                 <LineChart
                     data={{
-                        labels: ["Start", ...habitProgress.graphData.map(data => new Date(data.x).toLocaleDateString())],
+                        labels: ["start", ...habitProgress.graphData.map(data => new Date(data.x).toLocaleDateString())],
+                        // dates are given for each progress dot
                         datasets: [
                             {
-                                data: [0, ...habitProgress.graphData.map(data => data.y)],
+                                data: [0, ...habitProgress.graphData.map(data => data.y)], // always start at 0
                             },
                         ],
                     }}
-                    width={Dimensions.get("window").width - 20} // from react-native
+                    width={Dimensions.get("window").width - 20} 
                     height={220}
                     yAxisLabel=""
                     yAxisSuffix=""
-                    yAxisInterval={1} // optional, defaults to 1
+                    yAxisInterval={1}
                     chartConfig={{
                         backgroundColor: '#d4a373',
                         backgroundGradientFrom: '#d4a373',
                         backgroundGradientTo: '#d4a373',
-                        decimalPlaces: 2, // optional, defaults to 2
+                        decimalPlaces: 2, 
                         color: (opacity = 1) => '#fff', // fix later (to match colorscheme)
                         labelColor: (opacity = 1) => "#fff", // fix later (to match colorscheme)
                         style: {
@@ -216,22 +220,23 @@ const ProgressPage = () => {
             </View>
 
             {/* pictures grid */}
-            {habitProgress.images.length > 0 ? (
+            {habitProgress.images.length > 0 ? ( // only display grid if progress exists
                 <FlatList
                     style={{ marginTop: 30, marginHorizontal: 10 }}
                     data={habitProgress.images}
                     keyExtractor={(item) => item.uri}
-                    numColumns={numColumns}
+                    numColumns={numColumns} // dynamically renders images so they don't leave unnecessary whitespace
                     key={`image-list-${numColumns}`}
                     renderItem={({ item }) => (
                         <View style={styles.imageContainer}>
                             <TouchableOpacity onPress={() => openFullLog(item.uri, item.date, item.reflection)}>
+                                {/* open log of image, with inputs, reflection, date, image when clicked */}
                                 <Image source={{ uri: item.uri }} style={styles.image} />
                             </TouchableOpacity>
                         </View>
                     )}
                 />
-            ) : (
+            ) : ( // prompt user to log data if none exists
                 <View>
                     <Text style={[styles.title, { color: "#000", margin: 50 }]}>
                         you haven't logged progress for this habit yet!

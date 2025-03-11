@@ -10,13 +10,11 @@ const TabBar = ({ state, descriptors, navigation }) => {
     const [keyboardVisible, setKeyboardVisible] = useState(false);
 
     const icons = {
-        index: Feather,
-        log: AntDesign,
+        log: Feather,
     };
 
     const iconNames = {
-        index: "home",
-        log: "book", 
+        log: "home",
     };
 
     useEffect(() => {
@@ -61,7 +59,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
                     }
                 };
 
-                if (route.name === 'log' || route.name === 'progress') {
+                if (route.name === 'logProgress' || route.name === 'progress') {
                   return null;
                 }
 
