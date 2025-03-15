@@ -25,7 +25,7 @@ const LogProgress = () => {
             const habitDoc = await getDoc(habitDocRef);
             if (habitDoc.exists()) {
                 const habitData = habitDoc.data();
-                setProgressLog(prev => ({ ...prev, inputType: habitData.input || "string" }));
+                setProgressLog(prev => ({ ...prev, inputType: habitData.input || "boolean" }));
             }
         } catch (error) {
             console.error("error geting habit details:", error);
@@ -46,7 +46,7 @@ const LogProgress = () => {
             const logs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
             setAllProgressLogs(logs);
         } catch (error) {
-            console.error("Error getting progress logs:", error);
+            console.error("error getting progress logs:", error);
         }
     };
     
@@ -60,21 +60,27 @@ const LogProgress = () => {
         setProgressLog({ ...progressLog, [field]: value }); 
     }; 
 
-    const handleImageUpload = async () => { 
-        let result = await ImagePicker.launchImageLibraryAsync({ 
-            mediaTypes: ImagePicker.MediaTypeOptions.Images, 
-            allowsEditing: true, 
-            aspect: [4, 3], 
-            quality: 1, 
-        }); 
-
-        if (!result.canceled) { 
-            setProgressLog({ ...progressLog, image: result.assets[0].uri }); 
-        } 
-    }; 
+    const handleImageUpload = async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    
+        if (status !== "granted") {
+            alert("camera access is required to take a photo.");
+            return;
+        }
+    
+        let result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+    
+        if (!result.canceled) {
+            setProgressLog({ ...progressLog, image: result.assets[0].uri });
+        }
+    };    
 
     const saveProgressLog = async () => {
-        console.log(progressLog.reflection);
         if (progressLog.reflection && progressLog.image) {
             console.log(progressLog.inputType);
             try {
@@ -97,11 +103,12 @@ const LogProgress = () => {
                         reflection: progressLog.reflection,
                         image: progressLog.image,
                         inputType: progressLog.inputType,
-                        numericInput: progressLog.numericInput,
+                        numericInput: progressLog.numericInput || "1",
                     });
                 }
 
-                setProgressLog({ reflection: "", image: null, inputType: "", numericInput: "" });
+                setProgressLog({ reflection: "", image: null, numericInput: "" });
+                getHabitDetails();
                 getAllProgressLogs();
             } catch (error) {
                 alert("error saving progress: " + error.message);
@@ -137,7 +144,7 @@ const LogProgress = () => {
                             )} 
                             <View style={styles.buttonContainer}> 
                                 <TouchableOpacity style={styles.button} onPress={handleImageUpload}> 
-                                    <Text style={styles.buttonText}>upload image</Text> 
+                                    <Text style={styles.buttonText}>take an image</Text> 
                                 </TouchableOpacity> 
                             </View> 
                             <Text style={[styles.labelText, { marginBottom: 10, marginTop: 20 }]}>reflection</Text> 

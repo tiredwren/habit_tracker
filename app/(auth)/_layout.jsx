@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { Tabs, Stack } from 'expo-router';
+import { Tabs, Stack, Redirect } from 'expo-router';
 import TabBar from '../../components/navigation';
 import * as Font from 'expo-font';
 import { useFonts } from 'expo-font';
@@ -30,10 +30,10 @@ const _layout = () => {
                     title: "habits",
                     tabBarIcon: "home",
                     headerRight: () => (
-                    <TouchableOpacity onPress={() => router.replace('./')}>
-                        <Text style={{ marginRight: 10, color: '#0000ff' }}>logout</Text>
-                    </TouchableOpacity>
-                )
+                        <TouchableOpacity onPress={() => router.push("../index")}>
+                            <Text style={{ marginRight: 10, color: '#0000ff' }}>logout</Text>
+                        </TouchableOpacity>
+                    )
                 }}
             />
         </Tabs>

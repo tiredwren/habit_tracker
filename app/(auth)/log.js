@@ -109,7 +109,7 @@ const HabitTracker = () => {
   };
 
   const updateHabit = async () => {
-    if (editingHabit.name && editingHabit.frequency) {
+    if (editingHabit.name && editingHabit.image) {
       try {
         const habitRef = doc(db, "users", userId, "habits", editingHabit.id);
         await setDoc(habitRef, {
@@ -130,7 +130,6 @@ const HabitTracker = () => {
     try {
       const habitRef = doc(db, "users", userId, "habits", habitId);
       await deleteDoc(habitRef);
-      setIsEditDialogOpen(false);
     } catch (error) {
       console.error("error deleting habit:", error);
     }
@@ -145,6 +144,7 @@ const HabitTracker = () => {
       const progressRef = collection(db, "users", userId, "habits", habitId, "progress");
       const q = query(progressRef, orderBy("date", "desc"));
       const progressSnapshot = await getDocs(q);
+      console.log(progressSnapshot)
 
       const progressDates = progressSnapshot.docs.map(doc => {
         const dateData = doc.data().date;
@@ -253,6 +253,7 @@ const HabitTracker = () => {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={[styles.dialogBox, { position: "absolute", top: "0%", height: "120%", width: "100%", backgroundColor: "#b7b7a4", padding: 20 }]}
         >
+          
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
               <Text style={styles.title2}>a d d   a   g o a l</Text>
@@ -262,7 +263,7 @@ const HabitTracker = () => {
                 {newHabit.image && (
                   <Image
                     source={{ uri: newHabit.image }}
-                    style={{ marginBottom: 10, width: "100%", height: 150, borderRadius: 10 }}
+                    style={{ marginBottom: 0, width: "100%", height: 150, borderRadius: 10 }}
                   />
                 )}
 
@@ -272,11 +273,11 @@ const HabitTracker = () => {
                   </TouchableOpacity>
                 </View>
 
-                <Text style={[styles.labelText, { marginBottom: 10, marginTop: 20 }]}>name</Text>
+                <Text style={[styles.labelText, { marginBottom: 10, marginTop: 0 }]}>name</Text>
                 <TextInput
                   value={newHabit.name}
                   onChangeText={(text) => handleInputChange("name", text)}
-                  style={[styles.input, { color: "#000", marginBottom: 20 }]}
+                  style={[styles.input, { color: "#000", marginBottom: 10 }]}
                 />
 
                 <Text style={[styles.labelText, { marginBottom: 10 }]}>input type</Text>
@@ -320,7 +321,7 @@ const HabitTracker = () => {
                   </View>
                 )}
 
-                <View style={{ flex: 1, justifyContent: "flex-end", marginTop: 20 }}>
+                <View style={{ flex: 1, justifyContent: "flex-end", marginBottom: "30%", marginTop: "35%" }}>
                   <View style={styles.buttonContainer2}>
                     <TouchableOpacity style={styles.saveButton} onPress={saveHabit}>
                       <Text style={styles.buttonText}>save</Text>
@@ -342,28 +343,39 @@ const HabitTracker = () => {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={[styles.dialogBox, { position: "absolute", top: "0%", height: "120%", width: "100%", backgroundColor: "#b7b7a4", padding: 20 }]}
         >
+          
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-              <Text style={styles.title2}>e d i t   a   h a b i t</Text>
+              <Text style={styles.title2}>e d i t   a   g o a l</Text>
               <View style={styles.addHabitContainer}>
-                <Image
-                  source={{ uri: editingHabit.image }}
-                  style={{ marginBottom: 10, width: "100%", height: 150, borderRadius: 10 }}
-                />
+                
+                {/* display image above the button */}
+                {editingHabit.image && (
+                  <Image
+                    source={{ uri: editingHabit.image }}
+                    style={{ marginBottom: 0, width: "100%", height: 150, borderRadius: 10 }}
+                  />
+                )}
 
-                <Text style={[styles.labelText, { marginBottom: 10, marginTop: 20 }]}>name</Text>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity style={styles.button} onPress={handleImageUpload}>
+                    <Text style={styles.buttonText}>upload image</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={[styles.labelText, { marginBottom: 10, marginTop: 0 }]}>name</Text>
                 <TextInput
                   value={editingHabit.name}
                   onChangeText={(text) => handleEditInputChange("name", text)}
-                  style={[styles.input, { color: "#000", marginBottom: 20 }]}
+                  style={[styles.input, { color: "#000", marginBottom: 10 }]}
                 />
 
                 <Text style={[styles.labelText, { marginBottom: 10 }]}>input type</Text>
 
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={editingHabit.input}
-                    onValueChange={(value) => handleEditInputChange("input", value)}
+                    selectedValue={newHabit.input}
+                    onValueChange={(value) => handleInputChange("input", value)}
                     style={{ color: "#000" }}
                   >
                     <Picker.Item label="checkbox (for one-time habits)" value="boolean" />
@@ -372,6 +384,7 @@ const HabitTracker = () => {
                 </View>
 
                 <Text style={[styles.labelText, { marginBottom: 10 }]}>frequency</Text>
+                
                 {/* dropdown based on client feedback */}
                 <View style={styles.pickerContainer}>
                   <Picker
@@ -382,7 +395,6 @@ const HabitTracker = () => {
                     <Picker.Item label="daily" value="daily" />
                     <Picker.Item label="weekly" value="weekly" />
                     <Picker.Item label="monthly" value="monthly" />
-                    <Picker.Item label="specific days" value="specificDays" />
                     <Picker.Item label="custom" value="custom" />
                   </Picker>
                 </View>
@@ -392,20 +404,17 @@ const HabitTracker = () => {
                   <View>
                     <Text style={[styles.labelText, { marginTop: 10, marginBottom: 10 }]}>enter custom frequency</Text>
                   <TextInput
-                    value={newHabit.customFrequency || editingHabit.frequency}
-                    onChangeText={(text) => handleInputChange("customFrequency", text)}
+                    value={newHabit.customFrequency || ""}
+                    onChangeText={(text) => handleEditInputChange("customFrequency", text)}
                     style={[styles.input, { color: "#000" }]}
                   />
                   </View>
                 )}
 
-                <View style={{ flex: 1, justifyContent: "flex-end" }}>
-                  <View style={[styles.buttonContainer2, {bottom: 0}]}>
+                <View style={{ flex: 1, justifyContent: "flex-end", marginBottom: "30%", marginTop: "35%" }}>
+                  <View style={styles.buttonContainer2}>
                     <TouchableOpacity style={styles.saveButton} onPress={updateHabit}>
-                      <Text style={styles.buttonText}>update</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.deleteButton} onPress={() => deleteHabit(editingHabit.id)}>
-                      <Text style={styles.buttonText}>delete</Text>
+                      <Text style={styles.buttonText}>save</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.cancelButton} onPress={() => setIsEditDialogOpen(false)}>
                       <Text style={styles.buttonText}>cancel</Text>

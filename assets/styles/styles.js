@@ -242,8 +242,12 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         marginBottom: 10,
         width: "92%",
-        alignSelf: "center"
+        height: 40,
+        alignSelf: "center",
+        justifyContent: "center",
+        backgroundColor: "#fff",
     },
+    
 });
 
 export default styles;

@@ -1,4 +1,4 @@
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Redirect, Stack, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
 
@@ -28,7 +28,7 @@ export default function RootLayout() {
         if (user && !inAuthGroup) {
             router.replace('/(auth)/log');
         } else if (!user && inAuthGroup) {
-            router.replace('/');
+            <Redirect href="../index"/>;
         }
 
 
@@ -36,7 +36,7 @@ export default function RootLayout() {
 
     return (
         <Stack>
-            <Stack.Screen name="index" options={{headerShown: false}}/>
+            <Stack.Screen name="index"/>
             <Stack.Screen name="(auth)" options={{headerShown: false}}/>
         </Stack>
     )

@@ -31,6 +31,7 @@ const ProgressPage = () => {
     const [selectedImageUri, setSelectedImageUri] = useState(null);
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedReflection, setSelectedReflection] = useState("");
+    const [selectedData, setSelectedData] = useState("");
     const [goal, setGoal] = useState(1)
 
     const params = useLocalSearchParams();
@@ -112,7 +113,7 @@ const ProgressPage = () => {
                     querySnapshot.forEach((doc) => {
                         const foundData = doc.data();
                         if (foundData.image) {
-                            images.push({ id: doc.id, uri: foundData.image, reflection: foundData.reflection, date: foundData.date || "" });
+                            images.push({ id: doc.id, uri: foundData.image, reflection: foundData.reflection, date: foundData.date || "", data: foundData.numericInput });
                         }
 
                         // getting the graph data
@@ -146,11 +147,12 @@ const ProgressPage = () => {
         getCurrency(); // get currency when component mounts
     }, [habitRef]);
 
-    const openFullLog = (image, date, reflection) => {
+    const openFullLog = (image, date, reflection, data) => {
         setIsDialogOpen(true);
         setSelectedImageUri(image);
         setSelectedDate(date);
         setSelectedReflection(reflection);
+        setSelectedData(data);
     };
 
     return (
@@ -229,9 +231,9 @@ const ProgressPage = () => {
                     key={`image-list-${numColumns}`}
                     renderItem={({ item }) => (
                         <View style={styles.imageContainer}>
-                            <TouchableOpacity onPress={() => openFullLog(item.uri, item.date, item.reflection)}>
+                            <TouchableOpacity onPress={() => openFullLog(item.uri, item.date, item.reflection, item.data)}>
                                 {/* open log of image, with inputs, reflection, date, image when clicked */}
-                                <Image source={{ uri: item.uri }} style={styles.image} />
+                                <Image source={{ uri: item.uri }} style={ styles.image } />
                             </TouchableOpacity>
                         </View>
                     )}
@@ -244,7 +246,7 @@ const ProgressPage = () => {
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity
                             style={[styles.button, { marginBottom: "30%", marginHorizontal: 30 }]}
-                            onPress={() => router.push(`/log?habitRef=${habitRef}`)}
+                            onPress={() => router.push(`/logProgress?habitRef=${habitRef}`)}
                         >
                             <Text style={styles.buttonText}>log progress</Text>
                         </TouchableOpacity>
@@ -256,7 +258,7 @@ const ProgressPage = () => {
             {isDialogOpen && (
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
-                    style={[styles.dialogBox, { position: "absolute", top: "-1%", height: "200%", width: "100%", backgroundColor: "#b7b7a4", borderRadius: 0 }]}
+                    style={[styles.dialogBox, { position: "absolute", top: "-1%", height: "160%", width: "100%", backgroundColor: "#b7b7a4", borderRadius: 0 }]}
                 >
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                         <ScrollView contentContainerStyle={{ height: "100%" }}>
@@ -265,7 +267,10 @@ const ProgressPage = () => {
                                 <Text style={[styles.title, { color: "#000" }]}>{selectedDate.replace(/-/g, '/')}</Text>
                                 <Image source={{ uri: selectedImageUri }} style={{ marginBottom: 10, width: "100%", height: 150, borderRadius: 10 }} />
                                 <Text style={[styles.labelText, { marginLeft: 2 }]}>{selectedReflection}</Text>
-                                <TouchableOpacity style={[styles.cancelButton, { top: "20%" }]} onPress={() => setIsDialogOpen(false)}>
+                                {selectedData!=null && (
+                                    <Text style={[styles.labelText, { marginLeft: 2 }]}>you did this {selectedData} times.</Text>
+                                )}
+                                <TouchableOpacity style={[styles.cancelButton, { top: "35%" }]} onPress={() => setIsDialogOpen(false)}>
                                     <Text style={styles.buttonText}>exit</Text>
                                 </TouchableOpacity>
                             </View>
