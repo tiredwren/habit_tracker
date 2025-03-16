@@ -374,8 +374,8 @@ const HabitTracker = () => {
 
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={newHabit.input}
-                    onValueChange={(value) => handleInputChange("input", value)}
+                    selectedValue={editingHabit.input}
+                    onValueChange={(value) => handleEditInputChange("input", value)}
                     style={{ color: "#000" }}
                   >
                     <Picker.Item label="checkbox (for one-time habits)" value="boolean" />

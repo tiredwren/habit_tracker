@@ -80,6 +80,12 @@ const LogProgress = () => {
         }
     };    
 
+    const cancelButton = async () => {
+        setProgressLog({ reflection: "", image: null, numericInput: "" });
+        getHabitDetails();
+        router.back()
+    }
+
     const saveProgressLog = async () => {
         if (progressLog.reflection && progressLog.image) {
             console.log(progressLog.inputType);
@@ -110,6 +116,7 @@ const LogProgress = () => {
                 setProgressLog({ reflection: "", image: null, numericInput: "" });
                 getHabitDetails();
                 getAllProgressLogs();
+                router.back()
             } catch (error) {
                 alert("error saving progress: " + error.message);
             }
@@ -189,7 +196,7 @@ const LogProgress = () => {
                                     <TouchableOpacity style={styles.saveButton} onPress={saveProgressLog}> 
                                         <Text style={styles.buttonText}>save</Text> 
                                     </TouchableOpacity> 
-                                    <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}> 
+                                    <TouchableOpacity style={styles.cancelButton} onPress={cancelButton}> 
                                         <Text style={styles.buttonText}>cancel</Text> 
                                     </TouchableOpacity> 
                                 </View> 
